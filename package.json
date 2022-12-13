@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "phaser": "^3.55.2"
+  },
+  "scripts": {
+    "watch": "webpack --watch -c ./webpack.config.js"
+  }
+}
