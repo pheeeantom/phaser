@@ -30,13 +30,12 @@ export class PlanetScene extends Scene{
     this.terrainPlanet = this.planetMap.addTilesetImage(this.planet.name + "_terrain", this.planet.name + "_terrain_img")!;
 
     this.terrainPlanetLayer = this.planetMap.createLayer("terrain", [this.terrainPlanet], 0, 0)!.setDepth(-1);
-
-                          this.planet.initTmp(this);
+    console.log(this.terrainPlanetLayer);
 
     //this.curUnit = this.physics.add.sprite(64*7, 64*3, 'soldier').setOrigin(0, 0);
 
-    this.physics.world.bounds.width = this.planetMap.widthInPixels;
-    this.physics.world.bounds.height = this.planetMap.heightInPixels;
+    //this.physics.world.bounds.width = this.planetMap.widthInPixels;
+    //this.physics.world.bounds.height = this.planetMap.heightInPixels;
     //this.curUnit.setCollideWorldBounds(true);
 
     this.cursors = this.input.keyboard!.createCursorKeys();
@@ -62,6 +61,15 @@ export class PlanetScene extends Scene{
         if (Math.min(this.planetMap.widthInPixels, this.planetMap.heightInPixels) / (64 * newZoom) >= 5) {
           this.cameras.main.zoom = newZoom;
         }
+      }
+    });
+
+    this.planet.tiles.generateTiles(this);
+                                  this.planet.initTmp(this);
+
+    this.input.on("pointerup",  (pointer) => {
+      if (this.planet.curUnit) {
+        this.planet.curUnit.move(pointer.x, pointer.y, this.planet.tiles, this.planet.tiles.movementRange(this.planet.curUnit));
       }
     });
   }

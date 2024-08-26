@@ -5,5 +5,6 @@ export class Soldier extends PlanetUnit {
     name: string = "soldier";
     constructor() {
         super();
+        this.movementPoints = 5;
     }
 }

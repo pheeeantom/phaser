@@ -17,4 +17,4 @@ var config: Phaser.Types.Core.GameConfig = {
 }
 
 
-var game = new Game(config);
+export var game = new Game(config);
