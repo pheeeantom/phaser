@@ -31,15 +31,15 @@
  "tileheight":64,
  "tilesets":[
         {
-         "columns":7,
+         "columns":9,
          "firstgid":1,
          "image":"..\/tilesets\/earth_terrain.png",
          "imageheight":64,
-         "imagewidth":448,
+         "imagewidth":576,
          "margin":0,
          "name":"earth_terrain",
          "spacing":0,
-         "tilecount":7,
+         "tilecount":9,
          "tileheight":64,
          "tiles":[
                 {
@@ -139,8 +139,40 @@
                          "type":"bool",
                          "value":true
                         }]
+                }, 
+                {
+                 "id":7,
+                 "properties":[
+                        {
+                         "name":"movement_cost",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"water",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":8,
+                 "properties":[
+                        {
+                         "name":"movement_cost",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"water",
+                         "type":"bool",
+                         "value":false
+                        }]
                 }],
          "tilewidth":64
+        }, 
+        {
+         "firstgid":10,
+         "source":":\/automap-tiles.tsx"
         }],
  "tilewidth":64,
  "type":"map",

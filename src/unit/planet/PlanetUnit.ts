@@ -51,7 +51,7 @@ export class PlanetUnit extends Unit {
         let timerId = setInterval((gen) => {
                 let tile: Tile | null = next.next().value;
                 console.log(tile);
-                if (!tile) { clearInterval(timerId); console.log(totalCost); this.movementRange(); return; }
+                if (!tile) { clearInterval(timerId); console.log(totalCost); return; }
                 /*if (tile.x === 5) {
                     tile.x = 1000;
                     tile.y = 1000;

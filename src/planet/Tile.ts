@@ -1,3 +1,4 @@
+import { Improvement } from "./improvement/Improvement";
 import { Tiles } from "./Tiles";
 
 //constructor function to create all the grid points as objects containind the data for the points
@@ -12,6 +13,7 @@ export class Tile {
     water: boolean;
     neighbors: Tile[];
     parent: Tile | undefined;
+    improvement: Improvement | null;
     constructor(x: number, y: number, terrainTypeId: number, movementCost: number, water: boolean) {
         this.x = x; //x location of the grid point
         this.y = y; //y location of the grid point

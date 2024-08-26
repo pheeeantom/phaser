@@ -1,5 +1,7 @@
 import { Scene } from "phaser";
 import { Planet } from "../planet/Planet";
+import { Game } from "../game/Game";
+import { PlanetUnit } from "../unit/planet/PlanetUnit";
 
 export class PlanetScene extends Scene{
 
@@ -7,6 +9,7 @@ export class PlanetScene extends Scene{
   terrainPlanet!: Phaser.Tilemaps.Tileset;
   terrainPlanetLayer!: Phaser.Tilemaps.TilemapLayer;
   planet: Planet;
+  gameObj: Game;
   //curUnit!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   //curUnit: PlanetUnit | null;
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -18,6 +21,7 @@ export class PlanetScene extends Scene{
 
   init(data){
     this.planet = data.planet;
+    this.gameObj = data.game;
   }
 
   preload(){
@@ -65,12 +69,32 @@ export class PlanetScene extends Scene{
     });
 
     this.planet.tiles.generateTiles(this);
-                                  this.planet.initTmp(this);
+                                  this.planet.initTmp(this, this.gameObj);
 
     this.input.on("pointerup",  (pointer) => {
       if (this.planet.curUnit) {
         this.planet.curUnit.move(pointer.x, pointer.y, this.planet.tiles, this.planet.tiles.movementRange(this.planet.curUnit));
+        this.planet.curUnit.clearRange();
+        this.planet.curUnit = null;
       }
+      else if (!this.planet.curUnit) {
+        if (!this.gameObj.countries.get(this.gameObj.turn.country)) {
+          throw new Error('No current country');
+        }
+        else {
+          this.planet.curUnit = this.gameObj.countries.get(this.gameObj.turn.country)!.units.filter(
+            (unit) => unit instanceof PlanetUnit
+          ).find((unit) => {
+            let {x: tmpX, y: tmpY} = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+            let phaserTileStart = this.terrainPlanetLayer.getTileAtWorldXY(tmpX, tmpY);
+            let newX = phaserTileStart.x;
+            let newY = phaserTileStart.y;
+            return unit.x === newX && unit.y === newY;
+          }) ?? null;
+          this.planet.curUnit?.movementRange();
+        }
+      }
+      console.log(this.planet.curUnit);
     });
   }
 
