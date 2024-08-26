@@ -1,8 +1,16 @@
 {
   "dependencies": {
-    "phaser": "^3.55.2"
+    "express": "^4.19.2",
+    "phaser": "^3.80.1",
+    "webpack": "^5.94.0"
   },
   "scripts": {
-    "watch": "webpack --watch -c ./webpack.config.js"
+    "start": "nodemon app.js",
+    "watch": "webpack"
+  },
+  "devDependencies": {
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.5.4",
+    "webpack-cli": "^5.1.4"
   }
 }
