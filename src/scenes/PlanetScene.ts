@@ -73,16 +73,26 @@ export class PlanetScene extends Scene{
 
     this.input.on("pointerup",  (pointer) => {
       if (this.planet.curArmy) {
-        if (this.planet.curArmy.menu.activated) {
-          if (this.planet.curArmy.menu.tmpArmy) {
-            Country.getCurrentCountry().addArmy(this.planet.curArmy.menu.tmpArmy!, [this.planet.curArmy.units[0]], this);
-            this.planet.curArmy.removeUnit(this.planet.curArmy.menu.tmpArmy!.units, this);
-            this.planet.curArmy = this.planet.curArmy.menu.tmpArmy! as LandArmy;
+        if (this.planet.activated !== "none") {
+          if (this.planet.activated === "move one") {
+            this.planet.chooseOne(this.planet.curArmy.x, this.planet.curArmy.y);
+          }
+          else if (this.planet.activated === "move all") {
+            this.planet.chooseAll();
+          }
+          if (this.planet.tmpArmy) {
+            let country = Country.getCurrentCountry();
+            country.addArmy(this.planet.tmpArmy!, [this.planet.curArmy.units[0]], this);
+            this.planet.curArmy.removeUnit(this.planet.tmpArmy!.units, this, country.color);
+            this.planet.curArmy.clearRange();
+            this.planet.curArmy.menu.clearMenu();
+            this.planet.curArmy = this.planet.tmpArmy! as LandArmy;
           }
           console.log(this.planet.curArmy);
           this.planet.curArmy.move(pointer.x, pointer.y,
             this.planet.tiles.movementRange(this.planet.curArmy), () => {
               if (this.planet.curArmy) {
+                console.log(10000000);
                 this.planet.curArmy.clearRange();
                 let improvement = Planet.getImprovementByXY(this.planet.curArmy.x, this.planet.curArmy.y);
                 console.log(improvement);
@@ -95,12 +105,15 @@ export class PlanetScene extends Scene{
                 if (!country) throw new Error('Army is not in any country');
                 this.planet.curArmy.renderLabel(this, country.color);
                 this.planet.curArmy.menu.clearMenu();
+                this.planet.activated = "none";
                 this.planet.curArmy = null;
               }
             });
           return;
         }
-        this.planet.curArmy.menu.click(pointer.x, pointer.y);
+        this.planet.activated = this.planet.curArmy.menu.click(pointer.x, pointer.y, this.planet.curArmy.x, this.planet.curArmy.y,
+          this.planet.curArmy.units.length);
+        console.log(this.planet.activated);
       }
       else if (!this.planet.curArmy) {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);

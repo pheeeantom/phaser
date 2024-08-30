@@ -10,14 +10,18 @@ import { Unit } from "~/unit/Unit";
 import { Tile } from "./Tile";
 import { Army } from "~/country/Army";
 import { LandArmy } from "../country/LandArmy";
+import { SpaceArmy } from "~/country/SpaceArmy";
 
 export class Planet {
     name: string;
     curArmy: LandArmy | null;
+    tmpArmy: LandArmy | null;
     tiles: Tiles;
+    activated: string;
     constructor(name) {
         this.name = name;
         this.tiles = new Tiles();
+        this.activated = "none";
     }
 
     initTmp(planetScene: PlanetScene, game: Game) {
@@ -49,7 +53,7 @@ export class Planet {
         else {
             this.curArmy = Planet.getArmyByXYAndCountry(x, y, Country.getCurrentCountry());
             this.curArmy?.movementRange();
-            this.curArmy?.menu.render(planetScene);
+            this.curArmy?.menu.render(planetScene, x, y);
         }
     }
 
@@ -88,5 +92,21 @@ export class Planet {
 
     getTileByXY(x: number, y: number): Tile {
         return this.tiles.grid[x][y];
+    }
+
+    chooseOne(x: number, y: number) {
+        //let singleUnitArmy = this.army instanceof LandArmy ? new LandArmy() : new SpaceArmy();
+        let singleUnitArmy = new LandArmy();
+        singleUnitArmy.create(x, y);
+        //singleUnitArmy.addUnit([this.army.units[0]], this.menu.scene as PlanetScene);
+        this.tmpArmy = singleUnitArmy;
+    }
+
+    cancelChooseOne() {
+        this.tmpArmy = null;
+    }
+
+    chooseAll() {
+        this.tmpArmy = null;
     }
 }

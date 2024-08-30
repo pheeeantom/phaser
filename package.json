@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "circular-dependency-plugin": "^5.2.2",
     "express": "^4.19.2",
     "phaser": "^3.80.1",
     "webpack": "^5.94.0"

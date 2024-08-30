@@ -4,16 +4,12 @@ import { SpaceArmy } from "../country/SpaceArmy";
 import { Army } from "../country/Army";
 
 export class ArmyActions {
-    army: Army;
-    tmpArmy: Army | null;
     menu: Phaser.GameObjects.Text;
-    activated: boolean;
-    constructor(army: Army) {
-        this.army = army;
-        this.tmpArmy = null;
+    constructor() {
+
     }
 
-    click(pixelX: number, pixelY: number) {
+    click(pixelX: number, pixelY: number, xArmy: number, yArmy: number, unitsLen: number) {
         /*let {x: menuLeftX, y: menuTopY} = (this.menu.scene as PlanetScene).toSceneCoordsPixels(this.menu.x, this.menu.y);
         let {x: menuRightX, y: menuBottomY} = (this.menu.scene as PlanetScene).
             toSceneCoordsPixels(this.menu.x + this.menu.width, this.menu.y + 1 * this.menu.height / 1);*/
@@ -41,18 +37,18 @@ export class ArmyActions {
         let menuRightX = this.menu.x + this.menu.width;;
         let height = 1 * this.menu.height / 2;
         if (pixelXNew > menuLeftX && pixelXNew < menuRightX &&
-            pixelYNew > menuTopY && pixelYNew < menuTopY + height &&
-            this.army.units.length > 1) {
-            console.log("move one");
-            this.chooseOne();
+            pixelYNew > menuTopY && pixelYNew < menuTopY + height) {
+            if (unitsLen > 1)
+                return "move one";
+            else
+                return "move all";
         }
         else if (pixelXNew > menuLeftX && pixelXNew < menuRightX &&
             pixelYNew > menuTopY + height && pixelYNew < menuTopY + 2 * height) {
-            console.log("move all");
-            this.chooseAll();
+            return "move all";
         }
         else {
-            console.log("none");
+            return "none";
         }
         /*console.log(camera.width);
         console.log(menuLeftX);
@@ -60,32 +56,13 @@ export class ArmyActions {
         console.log(pixelXNew);*/
     }
 
-    private chooseOne() {
-        //let singleUnitArmy = this.army instanceof LandArmy ? new LandArmy() : new SpaceArmy();
-        let singleUnitArmy = new SpaceArmy();
-        singleUnitArmy.create0(this.army.x, this.army.y);
-        //singleUnitArmy.addUnit([this.army.units[0]], this.menu.scene as PlanetScene);
-        this.tmpArmy = singleUnitArmy;
-        this.activated = true;
-    }
-
-    private cancelChooseOne() {
-        this.tmpArmy = null;
-    }
-
-    private chooseAll() {
-        this.tmpArmy = null;
-        this.activated = true;
-    }
-
     clearMenu() {
         this.menu?.destroy();
-        this.activated = false;
     }
 
-    render(planetScene: PlanetScene) {
+    render(planetScene: PlanetScene, x: number, y: number) {
         this.clearMenu();
-        let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(this.army.x, this.army.y);
+        let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(x, y);
         if (pixelX && pixelY) {
             this.menu =
             planetScene.add.text(pixelX + 32, pixelY + 10, 'move one\nmove all',

@@ -3,11 +3,31 @@ import { Army } from "./Army";
 import { PlanetUnit } from "~/unit/planet/PlanetUnit";
 import { Tile } from "~/planet/Tile";
 import { Country } from "./Country";
+import { Unit } from "~/unit/Unit";
+import { Scene } from "phaser";
 
 export class LandArmy extends Army {
     constructor() {
         super();
         this.range = [];
+    }
+
+    addUnit(target: Unit[], scene: Scene, color: string): Unit[] {
+        this.addUnit0(target);
+        //let country = Country.getCountryByArmy(this);
+        //console.log(country);
+        //if (!country) throw new Error('Army is not in any country');
+        this.renderLabel(scene as PlanetScene, color);
+        return target;
+    }
+
+    removeUnit(target: Unit[], scene: Scene, color: string): Unit[] {
+        this.removeUnit0(target);
+        //let country = Country.getCountryByArmy(this);
+        //console.log(country);
+        //if (!country) throw new Error('Army is not in any country');
+        this.renderLabel(scene as PlanetScene, color);
+        return target;
     }
 
     create(x: number, y: number) {

@@ -5,6 +5,7 @@ import { Army } from "./Army";
 import { LandArmy } from "./LandArmy";
 import { PlanetScene } from "~/scenes/PlanetScene";
 import { Scene } from "phaser";
+import { SpaceArmy } from "./SpaceArmy";
 
 export class Country {
     name: string;
@@ -35,7 +36,11 @@ export class Country {
 
     addArmy(target: Army, units: Unit[], scene: Scene): Army {
         this.armies.push(target);
-        target.addUnit(units, scene);
+        let country = Country.getCountryByArmy(target);
+        console.log(country);
+        if (!country) throw new Error('Army is not in any country');
+        if (target instanceof LandArmy || target instanceof SpaceArmy)
+            target.addUnit(units, scene, country.color);
         target.updateMovementPoints();
         target.sprite = scene.physics.add.sprite(64*target.x, 64*target.y, target.units[0].name).setOrigin(0, 0).setDepth(200);
         if (target instanceof LandArmy) {
