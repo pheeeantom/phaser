@@ -1,3 +1,4 @@
+import { PlanetScene } from "~/scenes/PlanetScene";
 import { Improvement } from "./improvement/Improvement";
 import { Tiles } from "./Tiles";
 
@@ -14,6 +15,7 @@ export class Tile {
     neighbors: Tile[];
     parent: Tile | undefined;
     improvement: Improvement | null;
+    label: Phaser.GameObjects.Text;
     constructor(x: number, y: number, terrainTypeId: number, movementCost: number, water: boolean) {
         this.x = x; //x location of the grid point
         this.y = y; //y location of the grid point
@@ -46,4 +48,14 @@ export class Tile {
         this.neighbors.push(grid[i][j - 1]);
       }
     };
+
+    renderLabel(planetScene: PlanetScene, name: string, color: string) {
+      this.label?.destroy();
+      let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(this.x, this.y);
+      if (pixelX && pixelY) {
+        this.label =
+          planetScene.add.text(pixelX, pixelY, name,
+          {color: color, backgroundColor: '#ffffff'}).setDepth(100);
+      }
+    }
   }

@@ -6,10 +6,14 @@ import { PlanetUnit } from "../unit/planet/PlanetUnit";
 import { City } from "./improvement/City";
 import { Village } from "./improvement/Village";
 import { Tiles } from "./Tiles";
+import { Unit } from "~/unit/Unit";
+import { Tile } from "./Tile";
+import { Army } from "~/country/Army";
+import { LandArmy } from "../country/LandArmy";
 
 export class Planet {
     name: string;
-    curUnit: PlanetUnit | null;
+    curArmy: LandArmy | null;
     tiles: Tiles;
     constructor(name) {
         this.name = name;
@@ -17,17 +21,72 @@ export class Planet {
     }
 
     initTmp(planetScene: PlanetScene, game: Game) {
-        game.countries = new Map();
-        game.countries.set('russia', new Country('russia', [], []));
-        game.countries.set('usa', new Country('usa', [], []));
-        game.countries.set('china', new Country('china', [], []));
-        let unit = new Soldier();
-        unit.create(7, 3, planetScene);
-        unit.movementRange();
-        game.countries.get('russia')!.units.push(unit);
-        this.curUnit = unit;
-        new City().place(2, 3, 10000, planetScene);
-        new City().place(4, 6, 10000, planetScene);
-        new Village().place(7, 8, 1000, planetScene);
+        new Country('russia', '#ff0000');
+        new Country('usa', '#0000ff');
+        new Country('china', '#00ff00');
+        let unit1 = new Soldier();
+        let unit2 = new Soldier();
+        let russianArmy1 = new LandArmy();
+        russianArmy1.create(7, 3);
+        Country.getCountryByName('russia')!.addArmy(russianArmy1, [unit1, unit2], planetScene);
+        //russianArmy1.movementRange();
+        //this.curArmy = russianArmy1;
+        let newyork = new City();
+        newyork.place(2, 3, 10000, planetScene, 'newyork');
+        newyork.occupy(Country.getCountryByName('usa')!, planetScene);
+        let moscow = new City();
+        moscow.place(4, 6, 10000, planetScene, 'moscow');
+        moscow.occupy(Country.getCountryByName('russia')!, planetScene);
+        let beijing = new Village();
+        beijing.place(7, 8, 1000, planetScene, 'beijing');
+        beijing.occupy(Country.getCountryByName('china')!, planetScene);
+    }
+
+    chooseCurUnit(x: number, y: number, planetScene: PlanetScene): void {
+        if (!Country.getCurrentCountry()) {
+            throw new Error('No current country');
+        }
+        else {
+            this.curArmy = Planet.getArmyByXYAndCountry(x, y, Country.getCurrentCountry());
+            this.curArmy?.movementRange();
+            this.curArmy?.menu.render(planetScene);
+        }
+    }
+
+    static getArmyByXYAndCountry(x: number, y: number, country: Country) {
+        return country ? this.getArmy(x, y, country.armies) : null;
+    }
+
+    static getImprovementByXYAndCountry(x: number, y: number, country: Country) {
+        return country ? this.getImprovement(x, y, country.tiles) : null;
+    }
+
+    static getArmyByXY(x: number, y: number) {
+        let pile = Country.allArmies();
+        return this.getArmy(x, y, pile);
+    }
+
+    static getImprovementByXY(x: number, y: number) {
+        let pile = Country.allTiles();
+        return this.getImprovement(x, y, pile);
+    }
+
+    static getArmy(x: number, y: number, pile: Army[]) {
+        return pile.filter(
+            (army) => army instanceof LandArmy
+        ).find((army) => {
+            return army.x === x && army.y === y;
+        }) ?? null;
+    }
+
+    static getImprovement(x: number, y: number, pile: Tile[]) {
+        let tile = pile.find((tile) => {
+            return tile.x === x && tile.y === y;
+        });
+        return tile ? tile.improvement : null;
+    }
+
+    getTileByXY(x: number, y: number): Tile {
+        return this.tiles.grid[x][y];
     }
 }

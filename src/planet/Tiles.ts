@@ -1,6 +1,7 @@
 import { PlanetUnit } from "~/unit/planet/PlanetUnit";
 import { PlanetScene } from "../scenes/PlanetScene";
 import { Tile } from "./Tile";
+import { LandArmy } from "~/country/LandArmy";
 
 export class Tiles {
     grid: Tile[][];
@@ -28,7 +29,7 @@ export class Tiles {
         }
     }
 
-    heuristic(position0: Tile, position1: Tile) {
+    private heuristic(position0: Tile, position1: Tile) {
         let d1 = Math.abs(position1.x - position0.x);
         let d2 = Math.abs(position1.y - position0.y);
       
@@ -36,7 +37,7 @@ export class Tiles {
     }
 
     shortestPath(start: Tile, end: Tile) {
-        console.log(this.grid);
+        //console.log(this.grid);
         this.clearParent();
         let openSet: Tile[] = [];
         let closedSet: Tile[] = [];
@@ -59,7 +60,7 @@ export class Tiles {
               path.push(temp.parent);
               temp = temp.parent;
             }
-            console.log("DONE!");
+            //console.log("DONE!");
             // return the traced path
             return path.reverse();
           }
@@ -95,12 +96,12 @@ export class Tiles {
         return [];
     }
 
-    movementRange(unit: PlanetUnit) {
+    movementRange(army: LandArmy) {
         let visitedNodes = new Map();
         const costSoFar = new Map();
         const nodesToVisitQueue: Tile[] = [];
 
-        let startPoint = this.grid[unit.x][unit.y];
+        let startPoint = this.grid[army.x][army.y];
         nodesToVisitQueue.push(startPoint);
         costSoFar.set(startPoint, 0);
         visitedNodes.set(startPoint, null);
@@ -117,7 +118,7 @@ export class Tiles {
                 const currentCost = costSoFar.get(currentNode);
                 const newCost = currentCost + nodeCost;
 
-                if (newCost <= unit.movementPoints) {
+                if (newCost <= army.movementPoints) {
                     if (!visitedNodes.has(neighbour)) {
                         visitedNodes.set(neighbour, currentNode);
                         costSoFar.set(neighbour, newCost);
@@ -133,7 +134,7 @@ export class Tiles {
         return [...visitedNodes.keys()];
     }
       
-    clearParent() {
+    private clearParent() {
         for (let i = 0; i < this.cols; i++) {
             for (let j = 0; j < this.rows; j++) {
               this.grid[i][j].parent = undefined;

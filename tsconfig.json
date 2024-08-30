@@ -24,7 +24,8 @@
 		],
 		"types": [
 			"phaser"
-		]
+		],
+		"forceConsistentCasingInFileNames": false
 	},
 	"include": [
 		"src/**/*"

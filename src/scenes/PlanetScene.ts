@@ -2,6 +2,10 @@ import { Scene } from "phaser";
 import { Planet } from "../planet/Planet";
 import { Game } from "../game/Game";
 import { PlanetUnit } from "../unit/planet/PlanetUnit";
+import { Country } from "../country/Country";
+import { Camera } from "../game/Camera";
+import { LandArmy } from "~/country/LandArmy";
+import { Army } from "~/country/Army";
 
 export class PlanetScene extends Scene{
 
@@ -9,19 +13,30 @@ export class PlanetScene extends Scene{
   terrainPlanet!: Phaser.Tilemaps.Tileset;
   terrainPlanetLayer!: Phaser.Tilemaps.TilemapLayer;
   planet: Planet;
-  gameObj: Game;
+  camera: Camera;
   //curUnit!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   //curUnit: PlanetUnit | null;
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
 
   constructor(){
     super("planet");
-    //this.curUnit = null;
+  }
+
+  toSceneCoords(x: number, y: number) {
+    let {x: tmpX, y: tmpY} = this.cameras.main.getWorldPoint(x, y);
+    let phaserTileStart = this.terrainPlanetLayer.getTileAtWorldXY(tmpX, tmpY);
+    let newX = phaserTileStart.x;
+    let newY = phaserTileStart.y;
+    return {x: newX, y: newY};
+  }
+
+  toSceneCoordsPixels(x: number, y: number): {x: number | null, y: number | null} {
+    let phaserTile = this.terrainPlanetLayer.tilemap.getTileAt(x, y);
+    return phaserTile ? {x: phaserTile.pixelX, y: phaserTile.pixelY} : {x: null, y: null};
   }
 
   init(data){
     this.planet = data.planet;
-    this.gameObj = data.game;
   }
 
   preload(){
@@ -29,12 +44,14 @@ export class PlanetScene extends Scene{
   }
 
   create(){
+    this.camera = new Camera(this.cameras.main);
+
   	this.planetMap = this.add.tilemap(this.planet.name);
 
     this.terrainPlanet = this.planetMap.addTilesetImage(this.planet.name + "_terrain", this.planet.name + "_terrain_img")!;
 
     this.terrainPlanetLayer = this.planetMap.createLayer("terrain", [this.terrainPlanet], 0, 0)!.setDepth(-1);
-    console.log(this.terrainPlanetLayer);
+    //console.log(this.terrainPlanetLayer);
 
     //this.curUnit = this.physics.add.sprite(64*7, 64*3, 'soldier').setOrigin(0, 0);
 
@@ -48,71 +65,51 @@ export class PlanetScene extends Scene{
     this.cameras.main.roundPixels = true;
 
     this.input.on("wheel",  (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
-
-      //console.log(Math.min(this.planet.widthInPixels, this.planet.heightInPixels));
-
-      if (deltaY > 0) {
-        var newZoom = this.cameras.main.zoom -.04;
-        console.log(newZoom);
-        if (Math.min(this.cameras.main.getBounds().width, this.cameras.main.getBounds().height) >=
-          Math.min(this.planetMap.widthInPixels, this.planetMap.heightInPixels) / newZoom) {
-          this.cameras.main.zoom = newZoom;     
-        }
-      }
-    
-      if (deltaY < 0) {
-        var newZoom = this.cameras.main.zoom +.04;
-        if (Math.min(this.planetMap.widthInPixels, this.planetMap.heightInPixels) / (64 * newZoom) >= 5) {
-          this.cameras.main.zoom = newZoom;
-        }
-      }
+      this.camera.zoomHandler(deltaY);
     });
 
     this.planet.tiles.generateTiles(this);
-                                  this.planet.initTmp(this, this.gameObj);
+                                  this.planet.initTmp(this, Game.getInstance());
 
     this.input.on("pointerup",  (pointer) => {
-      if (this.planet.curUnit) {
-        this.planet.curUnit.move(pointer.x, pointer.y, this.planet.tiles, this.planet.tiles.movementRange(this.planet.curUnit));
-        this.planet.curUnit.clearRange();
-        this.planet.curUnit = null;
-      }
-      else if (!this.planet.curUnit) {
-        if (!this.gameObj.countries.get(this.gameObj.turn.country)) {
-          throw new Error('No current country');
+      if (this.planet.curArmy) {
+        if (this.planet.curArmy.menu.activated) {
+          if (this.planet.curArmy.menu.tmpArmy) {
+            Country.getCurrentCountry().addArmy(this.planet.curArmy.menu.tmpArmy!, [this.planet.curArmy.units[0]], this);
+            this.planet.curArmy.removeUnit(this.planet.curArmy.menu.tmpArmy!.units, this);
+            this.planet.curArmy = this.planet.curArmy.menu.tmpArmy! as LandArmy;
+          }
+          console.log(this.planet.curArmy);
+          this.planet.curArmy.move(pointer.x, pointer.y,
+            this.planet.tiles.movementRange(this.planet.curArmy), () => {
+              if (this.planet.curArmy) {
+                this.planet.curArmy.clearRange();
+                let improvement = Planet.getImprovementByXY(this.planet.curArmy.x, this.planet.curArmy.y);
+                console.log(improvement);
+                if (improvement) {
+                  let country = Country.getCurrentCountry();
+                  improvement.occupy(country, this);
+                }
+                console.log(this.planet.curArmy);
+                let country = Country.getCountryByArmy(this.planet.curArmy);
+                if (!country) throw new Error('Army is not in any country');
+                this.planet.curArmy.renderLabel(this, country.color);
+                this.planet.curArmy.menu.clearMenu();
+                this.planet.curArmy = null;
+              }
+            });
+          return;
         }
-        else {
-          this.planet.curUnit = this.gameObj.countries.get(this.gameObj.turn.country)!.units.filter(
-            (unit) => unit instanceof PlanetUnit
-          ).find((unit) => {
-            let {x: tmpX, y: tmpY} = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
-            let phaserTileStart = this.terrainPlanetLayer.getTileAtWorldXY(tmpX, tmpY);
-            let newX = phaserTileStart.x;
-            let newY = phaserTileStart.y;
-            return unit.x === newX && unit.y === newY;
-          }) ?? null;
-          this.planet.curUnit?.movementRange();
-        }
+        this.planet.curArmy.menu.click(pointer.x, pointer.y);
       }
-      console.log(this.planet.curUnit);
+      else if (!this.planet.curArmy) {
+        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+        this.planet.chooseCurUnit(newX, newY, this);
+      }
     });
   }
 
   update() {
-    //this.curUnit.body.setVelocity(0);
-    // Horizontal movement
-    if (this.cursors.left.isDown) {
-      /*if (this.cameras.main.scrollX ) */this.cameras.main.scrollX -= 8 / this.cameras.main.zoom;
-    }
-    else if (this.cursors.right.isDown) {
-      this.cameras.main.scrollX += 8 / this.cameras.main.zoom;
-    }
-    // Vertical movement
-    if (this.cursors.up.isDown) {
-      this.cameras.main.scrollY -= 8 / this.cameras.main.zoom;
-    }
-    else if (this.cursors.down.isDown) {
-      this.cameras.main.scrollY += 8 / this.cameras.main.zoom;
-    }
+    this.camera.moveHandler(this.cursors);
   }
 }

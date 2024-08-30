@@ -6,10 +6,10 @@ export class PlayScene extends Scene {
   gameObj: Game;
   constructor(){
     super("playGame");
-    this.gameObj = new Game();
+    new Game();
   }
 
   create(){
-  	this.scene.start("planet", { 'planet': new Planet('earth'), 'game': this.gameObj });
+  	this.scene.start("planet", { 'planet': new Planet('earth') });
   }
 }

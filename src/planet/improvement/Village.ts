@@ -1,14 +1,8 @@
-import { PlanetScene } from "~/scenes/PlanetScene";
-import { Improvement } from "./Improvement";
+import { Locality } from "./Locality";
 
-export class Village extends Improvement {
+export class Village extends Locality {
     constructor() {
         super();
         this.terrainTypeId = 9;
-    }
-
-    place(x: number, y: number, population: number, planetScene: PlanetScene): void {
-        super.place(x, y, population, planetScene);
-        planetScene.planet.tiles.grid[x][y].improvement = this;
     }
 }

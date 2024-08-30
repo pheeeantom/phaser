@@ -1,102 +1,11 @@
 
 import { Unit } from "../Unit";
 import { PlanetScene } from "../../scenes/PlanetScene";
-import { Tiles } from "~/planet/Tiles";
 import { Tile } from "~/planet/Tile";
 
 export class PlanetUnit extends Unit {
-
-    name: string;
-    sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
-    x: number;
-    y: number;
-    movementPoints: number;
-    range: Phaser.GameObjects.Rectangle[];
     constructor() {
         super();
-        this.range = [];
-    }
-
-    create(x: number, y: number, planetScene: PlanetScene) {
-        this.x = x;
-        this.y = y;
-        this.sprite = planetScene.physics.add.sprite(64*this.x, 64*this.y, this.name).setOrigin(0, 0);
-    }
-
-    move(x: number, y: number, tiles: Tiles, range: Tile[]) {
-        let {x: tmpX, y: tmpY} = this.sprite.scene.cameras.main.getWorldPoint(x, y);
-        let phaserTileStart = (this.sprite.scene as PlanetScene).terrainPlanetLayer.getTileAtWorldXY(tmpX, tmpY);
-        let newX = phaserTileStart.x;
-        let newY = phaserTileStart.y;
-        if (!range.includes(tiles.grid[newX][newY])) {
-            return;
-        }
-        console.log(this.x, this.y);
-        console.log(newX, newY);
-        let shortestPath = tiles.shortestPath(
-            tiles.grid[this.x][this.y],
-            tiles.grid[newX][newY]
-        );
-        let generateSequence = function*() {
-            for (let i = 1; i < shortestPath.length; i++) {
-                console.log(i);
-                yield shortestPath[i];
-            }
-            return null;
-        }
-        let generator = generateSequence();
-        let next = generator;
-        let totalCost = 0;
-        console.log(shortestPath);
-        let timerId = setInterval((gen) => {
-                let tile: Tile | null = next.next().value;
-                console.log(tile);
-                if (!tile) { clearInterval(timerId); console.log(totalCost); return; }
-                /*if (tile.x === 5) {
-                    tile.x = 1000;
-                    tile.y = 1000;
-                }*/
-                let phaserTile = (this.sprite.scene as PlanetScene).terrainPlanetLayer.tilemap.getTileAt(tile.x, tile.y);
-                if (!phaserTile) {
-                    clearInterval(timerId);
-                    phaserTile = (this.sprite.scene as PlanetScene).terrainPlanetLayer.tilemap.getTileAt(
-                        shortestPath[0].x, shortestPath[0].y
-                    );
-                    if (!phaserTile) {
-                        throw new Error('Source position tile is null');
-                    }
-                    this.sprite.setPosition(phaserTile.pixelX, phaserTile.pixelY);
-                    this.x = shortestPath[0].x;
-                    this.y = shortestPath[0].y;
-                    throw new Error('In-path position tile is null');
-                }
-                this.sprite.setPosition(phaserTile.pixelX, phaserTile.pixelY);
-                this.x = tile.x;
-                this.y = tile.y;
-                totalCost += tile.movementCost;
-            },
-            250, next);
-    }
-
-    movementRange() {
-        this.clearRange();
-        let range = (this.sprite.scene as PlanetScene).planet.tiles.movementRange(this);
-        range.forEach((tile) => {
-            let phaserTile = (this.sprite.scene as PlanetScene).terrainPlanetLayer.tilemap.getTileAt(
-                tile.x, tile.y
-            );
-            if (!phaserTile) {
-                this.clearRange();
-                throw new Error('Error in range building');
-            }
-            this.range.push(this.sprite.scene.add.rectangle(phaserTile.pixelX,phaserTile.pixelY, 64, 64, 0xff0000, 0.2).setOrigin(0,0))
-        });
-    }
-
-    clearRange() {
-        if (!this.range) return;
-        this.range.forEach((rect) => {rect.destroy()});
-        this.range = [];
     }
 
     // openArr is the tiles that have calculated cost
