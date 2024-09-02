@@ -5,6 +5,4 @@ export class City extends Locality {
         super();
         this.terrainTypeId = 8;
     }
-
-    
 }

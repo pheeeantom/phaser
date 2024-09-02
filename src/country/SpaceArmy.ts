@@ -7,17 +7,17 @@ export class SpaceArmy extends Army {
         super();
     }
 
-    addUnit(target: Unit[], scene: Scene): Unit[] {
-        this.addUnit0(target);
-        return [];
+    override addUnits(target: Unit[], scene: Scene, color: string): Unit[] {
+        super.addUnits(target);
+        return target;
     }
 
-    removeUnit(target: Unit[], scene: Scene): Unit[] {
-        this.removeUnit0(target);
-        return [];
+    override removeUnits(target: Unit[], scene: Scene, color: string): Unit[] {
+        super.removeUnits(target);
+        return target;
     }
 
-    create(x: number, y: number) {
-        this.create0(x, y);
+    override create(x: number, y: number) {
+        super.create(x, y);
     }
 }

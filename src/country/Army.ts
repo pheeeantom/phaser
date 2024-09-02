@@ -1,23 +1,24 @@
 import { Unit } from "~/unit/Unit";
 import { ArmyActions } from "../ui/ArmyActions";
+import { Scene } from "phaser";
+import { PlanetScene } from "~/scenes/PlanetScene";
 
-export class Army {
-    units: Unit[];
+export abstract class Army {
+    protected _units: Unit[];
     x: number;
     y: number;
-    range: Phaser.GameObjects.Rectangle[];
-    movementPoints: number;
-    label: Phaser.GameObjects.Text;
-    sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    protected _sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
+    protected _label: Phaser.GameObjects.Text;
     menu: ArmyActions;
     constructor() {
-        this.range = [];
+
     }
 
-    protected addUnit0(target: Unit[]): void {
-        this.units.push(...target);
-        this.updateMovementPoints();
+    protected addUnits(target: Unit[], scene?: Scene, color?: string): void {
+        this._units.push(...target);
+        //this.updateMovementPoints();
         console.log(this);
+        //return target;
         /*if (this instanceof LandArmy) {
             let country = Country.getCountryByArmy(this);
             console.log(country);
@@ -27,9 +28,9 @@ export class Army {
         return target;*/
     }
 
-    protected removeUnit0(target: Unit[]): void {
-        this.units = this.units.filter((unit) => !target.includes(unit));
-        this.updateMovementPoints();
+    protected removeUnits(target: Unit[], scene?: Scene, color?: string): void {
+        this._units = this._units.filter((unit) => !target.includes(unit));
+        //this.updateMovementPoints();
         console.log(this);
         /*if (this instanceof LandArmy) {
             let country = Country.getCountryByArmy(this);
@@ -41,17 +42,45 @@ export class Army {
     }
 
     isContainsUnit(target: Unit): boolean {
-        return this.units.indexOf(target) >= 0;
+        return this._units.indexOf(target) >= 0;
     }
 
-    updateMovementPoints() {
-        this.movementPoints = Math.min(...this.units.map(unit => unit.movementPoints));
-    }
-
-    protected create0(x: number, y: number) {
-        this.units = [];
+    protected create(x: number, y: number) {
+        this._units = [];
         this.x = x;
         this.y = y;
         this.menu = new ArmyActions();
+    }
+
+    getUnitsType() {
+        return this._units[0].name;
+    }
+
+    getUnitsNumber() {
+        return this._units.length;
+    }
+
+    renderIcon(scene: Scene) {
+        this.clearIcon();
+        this._sprite = scene.physics.add.sprite(64*this.x, 64*this.y, this.getUnitsType()).setOrigin(0, 0).setDepth(200);
+    }
+
+    clearIcon() {
+        this._sprite?.destroy();
+    }
+
+    clearLabel() {
+        this._label?.destroy();
+    }
+
+    renderLabel(planetScene: PlanetScene, color: string) {
+        this.clearLabel();
+        let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(this.x, this.y);
+        if (pixelX !== null && pixelY !== null) {
+        console.log(String(this._units.length));
+          this._label =
+            planetScene.add.text(pixelX + 54, pixelY + 50, String(this._units.length),
+            {color: color, backgroundColor: '#ffffff'}).setDepth(300);
+        }
     }
 }

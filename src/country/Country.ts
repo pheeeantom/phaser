@@ -12,13 +12,13 @@ export class Country {
     color: string;
     armies: Army[];
     tiles: Tile[];
-    private static countries: Map<string, Country> = new Map<string, Country>();
+    private static _countries: Map<string, Country> = new Map<string, Country>();
     constructor(name: string, color: string) {
         this.name = name;
         this.armies = [];
         this.tiles = [];
         this.color = color;
-        Country.countries.set(name, this);
+        Country._countries.set(name, this);
     }
 
     isContainsTile(target: Tile): boolean {
@@ -34,35 +34,37 @@ export class Country {
         return target;
     }
 
-    addArmy(target: Army, units: Unit[], scene: Scene): Army {
+    addArmy(target: Army, scene: Scene): Army {
         this.armies.push(target);
         let country = Country.getCountryByArmy(target);
         console.log(country);
         if (!country) throw new Error('Army is not in any country');
-        if (target instanceof LandArmy || target instanceof SpaceArmy)
-            target.addUnit(units, scene, country.color);
-        target.updateMovementPoints();
-        target.sprite = scene.physics.add.sprite(64*target.x, 64*target.y, target.units[0].name).setOrigin(0, 0).setDepth(200);
-        if (target instanceof LandArmy) {
-            target.renderLabel(target.sprite.scene as PlanetScene, this.color);
-        }
+        //if (target instanceof LandArmy || target instanceof SpaceArmy)
+        //    target.addUnits(units, scene, country.color);
+        //target.updateMovementPoints();
         return target;
+    }
+
+    static removeArmy(target: Army): void {
+        target.clearIcon();
+        target.clearLabel();
+        Country.getCountryByArmy(target)!.armies.splice(Country.getCountryByArmy(target)!.armies.indexOf(target), 1);
     }
 
     static allTiles() {
         let pile: Tile[] = [];
-        [...Country.countries.values()].forEach((country) => {pile.push(...country.tiles)});
+        [...Country._countries.values()].forEach((country) => {pile.push(...country.tiles)});
         return pile;
     }
 
     static allArmies() {
         let pile: Army[] = [];
-        [...Country.countries.values()].forEach((country) => {pile.push(...country.armies)});
+        [...Country._countries.values()].forEach((country) => {pile.push(...country.armies)});
         return pile;
     }
 
     static getCountryByTile(tile: Tile): Country | null {
-        return [...Country.countries.values()].find((country) => {
+        return [...Country._countries.values()].find((country) => {
             return country.isContainsTile(tile);
         }) ?? null;
     }
@@ -75,7 +77,7 @@ export class Country {
     }
 
     static getCountryByName(name: string) {
-        return Country.countries.get(name);
+        return Country._countries.get(name);
     }
 
     static getCurrentCountry() {
@@ -85,6 +87,6 @@ export class Country {
     }
 
     static getCountryByArmy(army: Army): Country | null {
-        return [...Country.countries.values()].find(country => country.armies.indexOf(army) >= 0) ?? null;
+        return [...Country._countries.values()].find(country => country.armies.indexOf(army) >= 0) ?? null;
     }
 }

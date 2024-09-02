@@ -1,30 +1,32 @@
 import { PlanetUnit } from "~/unit/planet/PlanetUnit";
 import { PlanetScene } from "../scenes/PlanetScene";
 import { Tile } from "./Tile";
-import { LandArmy } from "~/country/LandArmy";
+import { LandArmy } from "../country/LandArmy";
+import { Army } from "../country/Army";
+import { Country } from "../country/Country";
 
 export class Tiles {
-    grid: Tile[][];
-    cols: number;
-    rows: number;
+    private _grid: Tile[][];
+    private _cols: number;
+    private _rows: number;
     constructor() {
 
     }
 
     generateTiles(planetScene: PlanetScene) {
         let map = planetScene.terrainPlanetLayer.layer.data;
-        this.grid = [];
-        this.cols = map.length;
-        this.rows = map[0].length;
-        for (let i = 0; i < this.cols; i++) {
-            this.grid.push([]);
+        this._grid = [];
+        this._cols = map.length;
+        this._rows = map[0].length;
+        for (let i = 0; i < this._cols; i++) {
+            this._grid.push([]);
             for (let j = 0; j < map[i].length; j++) {
-                this.grid[i][j] = new Tile(i, j, map[j][i].index, map[j][i].properties.movement_cost, map[j][i].properties.water);
+                this._grid[i][j] = new Tile(i, j, map[j][i].index, map[j][i].properties.movement_cost, map[j][i].properties.water);
             }
         }
-        for (let i = 0; i < this.cols; i++) {
-            for (let j = 0; j < this.rows; j++) {
-              this.grid[i][j].updateNeighbors(this.grid, this.cols, this.rows);
+        for (let i = 0; i < this._cols; i++) {
+            for (let j = 0; j < this._rows; j++) {
+              this._grid[i][j].updateNeighbors(this._grid, this._cols, this._rows);
             }
         }
     }
@@ -34,6 +36,26 @@ export class Tiles {
         let d2 = Math.abs(position1.y - position0.y);
       
         return d1 + d2;
+    }
+
+    private calcCost(neighbour: Tile, army: LandArmy, currentCost: number): number {
+      let armyOnTile = this.getArmyByXY(neighbour.x, neighbour.y);
+      let isMine = armyOnTile && Country.getCountryByArmy(armyOnTile) === Country.getCountryByArmy(army);
+      let isEnemy = armyOnTile && Country.getCountryByArmy(armyOnTile) !== Country.getCountryByArmy(army)
+      let nodeCost0;
+      if (!neighbour.water && !armyOnTile) {
+        nodeCost0 = neighbour.movementCost;
+      }
+      else if (!neighbour.water && armyOnTile && isMine) {
+        nodeCost0 = neighbour.movementCost;
+      }
+      else if (!neighbour.water && armyOnTile && isEnemy) {
+        nodeCost0 = army.movementPoints - currentCost;
+      }
+      else {
+        nodeCost0 = Number.POSITIVE_INFINITY;
+      }
+      return nodeCost0;
     }
 
     shortestPath(start: Tile, end: Tile) {
@@ -76,7 +98,21 @@ export class Tiles {
             let neighbor = neighbors[i];
       
             if (!closedSet.includes(neighbor)) {
-              let possibleG = current.g + (!neighbor.water ? neighbor.movementCost : Number.POSITIVE_INFINITY);
+              /*let armyOnTile = Tiles.getArmyByXY(neighbor.x, neighbor.y);
+              let canUnite = armyOnTile && armyOnTile.getUnitsType() === Tiles.getArmyByXY(start.x, start.y)!.getUnitsType();
+              let nodeCost0;
+              if (!neighbor.water && !armyOnTile) {
+                nodeCost0 = neighbor.movementCost;
+              }
+              else if (!neighbor.water && armyOnTile && canUnite) {
+                nodeCost0 = neighbor.movementCost;
+              }
+              else {
+                nodeCost0 = Number.POSITIVE_INFINITY
+              }
+              let possibleG = current.g + nodeCost0;*/
+
+              let possibleG = current.g + this.calcCost(neighbor, this.getArmyByXY(start.x, start.y)!, current.g);
       
               if (!openSet.includes(neighbor)) {
                 openSet.push(neighbor);
@@ -96,12 +132,12 @@ export class Tiles {
         return [];
     }
 
-    movementRange(army: LandArmy) {
+    getMovementRange(army: LandArmy): Tile[] {
         let visitedNodes = new Map();
         const costSoFar = new Map();
         const nodesToVisitQueue: Tile[] = [];
 
-        let startPoint = this.grid[army.x][army.y];
+        let startPoint = this._grid[army.x][army.y];
         nodesToVisitQueue.push(startPoint);
         costSoFar.set(startPoint, 0);
         visitedNodes.set(startPoint, null);
@@ -114,11 +150,24 @@ export class Tiles {
                     continue;
                 }
 
-                const nodeCost = !neighbour.water ? neighbour.movementCost : Number.POSITIVE_INFINITY;
+                /*let armyOnTile = Tiles.getArmyByXY(neighbour.x, neighbour.y);
+                let canUnite = armyOnTile && armyOnTile.getUnitsType() === army.getUnitsType() &&
+                  Country.getCountryByArmy(armyOnTile) === Country.getCountryByArmy(army);
+                let nodeCost0;
+                if (!neighbour.water && !armyOnTile) {
+                  nodeCost0 = neighbour.movementCost;
+                }
+                else if (!neighbour.water && armyOnTile && canUnite) {
+                  nodeCost0 = neighbour.movementCost;
+                }
+                else {
+                  nodeCost0 = Number.POSITIVE_INFINITY
+                }*/
                 const currentCost = costSoFar.get(currentNode);
+                const nodeCost = this.calcCost(neighbour, army, currentCost);
                 const newCost = currentCost + nodeCost;
 
-                if (newCost <= army.movementPoints) {
+                if (newCost <= (army as LandArmy).movementPoints) {
                     if (!visitedNodes.has(neighbour)) {
                         visitedNodes.set(neighbour, currentNode);
                         costSoFar.set(neighbour, newCost);
@@ -135,13 +184,50 @@ export class Tiles {
     }
       
     private clearParent() {
-        for (let i = 0; i < this.cols; i++) {
-            for (let j = 0; j < this.rows; j++) {
-              this.grid[i][j].parent = undefined;
-              this.grid[i][j].f = 0;
-              this.grid[i][j].g = 0;
-              this.grid[i][j].h = 0;
+        for (let i = 0; i < this._cols; i++) {
+            for (let j = 0; j < this._rows; j++) {
+              this._grid[i][j].parent = undefined;
+              this._grid[i][j].f = 0;
+              this._grid[i][j].g = 0;
+              this._grid[i][j].h = 0;
             }
         }
     }
+
+  getArmyByXYAndCountry(x: number, y: number, country: Country) {
+    return country ? this.getArmy(x, y, country.armies) : null;
+  }
+
+  getImprovementByXYAndCountry(x: number, y: number, country: Country) {
+    return country ? this.getImprovement(x, y, country.tiles) : null;
+  }
+
+  getArmyByXY(x: number, y: number) {
+    let pile = Country.allArmies();
+    return this.getArmy(x, y, pile);
+  }
+
+  getImprovementByXY(x: number, y: number) {
+    let pile = Country.allTiles();
+    return this.getImprovement(x, y, pile);
+  }
+
+  private getArmy(x: number, y: number, pile: Army[]) {
+    return pile.filter(
+      (army) => army instanceof LandArmy
+    ).find((army) => {
+      return army.x === x && army.y === y;
+    }) ?? null;
+  }
+
+  private getImprovement(x: number, y: number, pile: Tile[]) {
+    let tile = pile.find((tile) => {
+      return tile.x === x && tile.y === y;
+    });
+    return tile ? tile.improvement : null;
+  }
+
+  getTileByXY(x: number, y: number): Tile {
+    return this._grid[x][y];
+  }
 }

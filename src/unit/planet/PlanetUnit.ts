@@ -3,7 +3,7 @@ import { Unit } from "../Unit";
 import { PlanetScene } from "../../scenes/PlanetScene";
 import { Tile } from "~/planet/Tile";
 
-export class PlanetUnit extends Unit {
+export abstract class PlanetUnit extends Unit {
     constructor() {
         super();
     }

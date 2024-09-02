@@ -5,15 +5,32 @@ import { Tile } from "~/planet/Tile";
 import { Country } from "./Country";
 import { Unit } from "~/unit/Unit";
 import { Scene } from "phaser";
+import { Tiles } from "../planet/Tiles";
+import { PlayScene } from "~/scenes/PlayScene";
+import { Improvement } from "~/planet/improvement/Improvement";
 
 export class LandArmy extends Army {
+    protected _range: Phaser.GameObjects.Rectangle[];
+    movementPoints: number;
     constructor() {
         super();
-        this.range = [];
+        this._range = [];
     }
 
-    addUnit(target: Unit[], scene: Scene, color: string): Unit[] {
-        this.addUnit0(target);
+    override addUnits(target: Unit[], scene: Scene, color: string): Unit[] {
+        super.addUnits(target);
+        this.updateMovementPoints();
+        //let country = Country.getCountryByArmy(this);
+        //console.log(country);
+        //if (!country) throw new Error('Army is not in any country');
+        this.renderLabel(scene as PlanetScene, color);
+        this.renderIcon(scene);
+        return target;
+    }
+
+    override removeUnits(target: Unit[], scene: Scene, color: string): Unit[] {
+        super.removeUnits(target);
+        this.updateMovementPoints();
         //let country = Country.getCountryByArmy(this);
         //console.log(country);
         //if (!country) throw new Error('Army is not in any country');
@@ -21,27 +38,23 @@ export class LandArmy extends Army {
         return target;
     }
 
-    removeUnit(target: Unit[], scene: Scene, color: string): Unit[] {
-        this.removeUnit0(target);
-        //let country = Country.getCountryByArmy(this);
-        //console.log(country);
-        //if (!country) throw new Error('Army is not in any country');
-        this.renderLabel(scene as PlanetScene, color);
-        return target;
+    override create(x: number, y: number) {
+        super.create(x, y);
     }
 
-    create(x: number, y: number) {
-        this.create0(x, y);
+    updateMovementPoints() {
+        this.movementPoints = Math.min(...this._units.map(unit => unit.movementPoints));
     }
 
-    move(x: number, y: number, range: Tile[], callback: Function) {
-        let {x: newX, y: newY} = (this.sprite.scene as PlanetScene).toSceneCoords(x, y);
-        if (!range.includes((this.sprite.scene as PlanetScene).planet.getTileByXY(newX, newY))) {
+    move(x: number, y: number, range: Tile[], planetScene: PlanetScene, toArmy: LandArmy | null, improvement: Improvement | null) {
+        let {x: newX, y: newY} = (this._sprite.scene as PlanetScene).toSceneCoords(x, y);
+        if (!range.includes((this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY))) {
+            this.clearRange();
             return;
         }
-        let shortestPath = (this.sprite.scene as PlanetScene).planet.tiles.shortestPath(
-            (this.sprite.scene as PlanetScene).planet.getTileByXY(this.x, this.y),
-            (this.sprite.scene as PlanetScene).planet.getTileByXY(newX, newY)
+        let shortestPath = (this._sprite.scene as PlanetScene).planet.tiles.shortestPath(
+            (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(this.x, this.y),
+            (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY)
         );
         let generateSequence = function*() {
             for (let i = 1; i < shortestPath.length; i++) {
@@ -52,28 +65,89 @@ export class LandArmy extends Army {
         let generator = generateSequence();
         let next = generator;
         let totalCost = 0;
+        let callback = () => {
+            console.log(10000000);
+            this.clearRange();
+            console.log(improvement);
+            if (improvement) {
+                let country = Country.getCurrentCountry();
+                improvement.occupy(country, planetScene);
+            }
+            if (toArmy) {
+                if (toArmy.getUnitsType() === this.getUnitsType() &&
+                    Country.getCountryByArmy(toArmy) === Country.getCountryByArmy(this)) {
+                    this.addAllFromArmy(toArmy, planetScene, Country.getCountryByArmy(this)!.color);
+                    Country.removeArmy(toArmy);
+                }
+                else if (Country.getCountryByArmy(toArmy) !== Country.getCountryByArmy(this)) {
+                    this.meleeAttack(toArmy);
+                    console.log(this);
+                    if (this.getUnitsNumber()) {
+                        if (toArmy.getUnitsNumber()) {
+                            if (planetScene.planet.tiles.getArmyByXY(shortestPath[0].x, shortestPath[0].y)) {
+                                planetScene.planet.tiles.getArmyByXY(shortestPath[0].x, shortestPath[0].y)!.addAllFromArmy(this, planetScene, Country.getCountryByArmy(this)!.color);
+                                Country.removeArmy(this);
+                            }
+                            else {
+                                let {x: pixelX2, y: pixelY2} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(shortestPath[0].x, shortestPath[0].y);
+                                if (pixelX2 === null || pixelY2 === null) {
+                                    throw new Error('Source position tile is null');
+                                }
+                                this._sprite.setPosition(pixelX2, pixelY2);
+                                this.x = shortestPath[0].x;
+                                this.y = shortestPath[0].y;
+                                console.log(this);
+                                let country = Country.getCountryByArmy(this);
+                                if (!country) throw new Error('Army is not in any country');
+                                this.renderLabel(planetScene, country.color);
+                                this.menu.clearMenu();
+                            }
+                        }
+                        else {
+                            console.log(this);
+                            let country = Country.getCountryByArmy(this);
+                            if (!country) throw new Error('Army is not in any country');
+                            this.renderLabel(planetScene, country.color);
+                            this.menu.clearMenu();
+                        }
+                    }
+                }
+            }
+            else {
+                console.log(this);
+                let country = Country.getCountryByArmy(this);
+                if (!country) throw new Error('Army is not in any country');
+                this.renderLabel(planetScene, country.color);
+                this.menu.clearMenu();
+            }
+        };
         //console.log(shortestPath);
         let timerId = setInterval((gen) => {
                 let tile: Tile | null = next.next().value;
                 //console.log(tile);
-                if (!tile) { clearInterval(timerId); console.log(totalCost); callback(); return; }
+                if (!tile) {
+                    clearInterval(timerId);
+                    console.log(totalCost);
+                    callback();
+                    return;
+                }
                 /*if (tile.x === 5) {
                     tile.x = 1000;
                     tile.y = 1000;
                 }*/
-                let {x: pixelX, y: pixelY} = (this.sprite.scene as PlanetScene).toSceneCoordsPixels(tile.x, tile.y);
+                let {x: pixelX, y: pixelY} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(tile.x, tile.y);
                 if (pixelX === null || pixelY === null) {
                     clearInterval(timerId);
-                    let {x: pixelX2, y: pixelY2} = (this.sprite.scene as PlanetScene).toSceneCoordsPixels(shortestPath[0].x, shortestPath[0].y);
+                    let {x: pixelX2, y: pixelY2} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(shortestPath[0].x, shortestPath[0].y);
                     if (pixelX2 === null || pixelY2 === null) {
                         throw new Error('Source position tile is null');
                     }
-                    this.sprite.setPosition(pixelX2, pixelY2);
+                    this._sprite.setPosition(pixelX2, pixelY2);
                     this.x = shortestPath[0].x;
                     this.y = shortestPath[0].y;
                     throw new Error('In-path position tile is null');
                 }
-                this.sprite.setPosition(pixelX, pixelY);
+                this._sprite.setPosition(pixelX, pixelY);
                 this.x = tile.x;
                 this.y = tile.y;
                 totalCost += tile.movementCost;
@@ -81,39 +155,118 @@ export class LandArmy extends Army {
             250, next);
     }
 
-    movementRange() {
+    renderMovementRange() {
         this.clearRange();
-        let range = (this.sprite.scene as PlanetScene).planet.tiles.movementRange(this);
+        let range = (this._sprite.scene as PlanetScene).planet.tiles.getMovementRange(this);
         console.log(range);
         range.forEach((tile) => {
-            let {x: pixelX, y: pixelY} = (this.sprite.scene as PlanetScene).toSceneCoordsPixels(tile.x, tile.y);
+            let {x: pixelX, y: pixelY} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(tile.x, tile.y);
             console.log(pixelX, pixelY);
             if (pixelX === null || pixelY === null) {
                 this.clearRange();
                 throw new Error('Error in range building');
             }
-            this.range.push(this.sprite.scene.add.rectangle(pixelX, pixelY, 64, 64, 0xff0000, 0.2).setOrigin(0,0))
+            this._range.push(this._sprite.scene.add.rectangle(pixelX, pixelY, 64, 64, 0xff0000, 0.2).setOrigin(0,0))
         });
     }
 
     clearRange() {
-        if (!this.range) return;
-        this.range.forEach((rect) => {rect.destroy()});
-        this.range = [];
+        if (!this._range) return;
+        this._range.forEach((rect) => {rect.destroy()});
+        this._range = [];
     }
 
-    renderLabel(planetScene: PlanetScene, color: string) {
-        this.clearLabel();
-        let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(this.x, this.y);
-        if (pixelX && pixelY) {
-        console.log(String(this.units.length));
-          this.label =
-            planetScene.add.text(pixelX + 54, pixelY + 50, String(this.units.length),
-            {color: color, backgroundColor: '#ffffff'}).setDepth(300);
+    transferOneFromArmy(army: LandArmy, planetScene: PlanetScene, color: string) {
+        this.addUnits([army._units[0]], planetScene, color);
+        army.removeUnits([this._units[0]], planetScene, color);
+    }
+
+    addAllFromArmy(army: LandArmy, planetScene: PlanetScene, color: string) {
+        this.addUnits(army._units, planetScene, color);
+    }
+
+    meleeAttack(army: LandArmy) {
+        let thisNumber = this.getUnitsNumber();
+        let armyNumber = army.getUnitsNumber();
+
+        let bigArmy;
+        let smallArmy;
+        let bigUnits;
+        let smallUnits;
+        let bigNumber;
+        let smallNumber;
+        if (thisNumber >= armyNumber) {
+            bigArmy = this;
+            smallArmy = army;
+            bigUnits = this._units;
+            smallUnits = army._units;
+            bigNumber = thisNumber;
+            smallNumber = armyNumber;
         }
-    }
-
-    clearLabel() {
-        this.label?.destroy();
+        else {
+            bigArmy = army;
+            smallArmy = this;
+            bigUnits = army._units;
+            smallUnits = this._units;
+            bigNumber = armyNumber;
+            smallNumber = thisNumber;
+        }
+        //let extra = bigNumber % smallNumber;
+        //let bonus = (bigNumber - extra) / smallNumber + Number(extra > 0);
+        let bonus = 0;
+        let extra = bigNumber;
+        while (extra > 0) {
+            console.log(extra);
+            extra = extra - smallNumber;
+            bonus++;
+        }
+        let diceRollWithBonusArr = bigUnits[0].meleeAttackDice.split('d');
+        let diceRollWithBonus = (Number(diceRollWithBonusArr[0]) * bonus) + 'd' + diceRollWithBonusArr[1];
+        let diceRollWithBonusExtra = (Number(diceRollWithBonusArr[0]) * (bonus - 1)) + 'd' + diceRollWithBonusArr[1];
+        let attackerDeaths = 0;
+        let defenderDeaths = 0;
+        extra = -extra;
+        for (let i = 0; i < smallNumber - extra; i++) {
+            console.log(diceRollWithBonus + ':' + smallUnits[0].meleeAttackDice);
+            let att = bigUnits[0].diceRoll(diceRollWithBonus);
+            let def = smallUnits[0].diceRoll(smallUnits[0].meleeAttackDice);
+            if (att > def) {
+                defenderDeaths++;
+            }
+            else if (att < def) {
+                attackerDeaths++;
+            }
+        }
+        for (let i = smallNumber - extra; i < smallNumber; i++) {
+            console.log(diceRollWithBonusExtra + ':' + smallUnits[0].meleeAttackDice);
+            let att = bigUnits[0].diceRoll(diceRollWithBonusExtra);
+            let def = smallUnits[0].diceRoll(smallUnits[0].meleeAttackDice);
+            if (att > def) {
+                defenderDeaths++;
+            }
+            else if (att < def) {
+                attackerDeaths++;
+            }
+        }
+        console.log(attackerDeaths, defenderDeaths);
+        if (attackerDeaths) {
+            if (attackerDeaths >= bigNumber) {
+                (bigArmy as LandArmy).removeUnits(bigArmy._units, (bigArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(bigArmy)!.color);
+                Country.removeArmy(bigArmy);
+            }
+            else {
+                //console.log(bigArmy);
+                (bigArmy as LandArmy).removeUnits(bigArmy._units.slice(0, attackerDeaths), (bigArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(bigArmy)!.color);
+            }
+        }
+        if (defenderDeaths) {
+            if (defenderDeaths >= smallNumber) {
+                (smallArmy as LandArmy).removeUnits(smallArmy._units, (smallArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(smallArmy)!.color);
+                Country.removeArmy(smallArmy);
+            }
+            else {
+                (smallArmy as LandArmy).removeUnits(smallArmy._units.slice(0, defenderDeaths), (bigArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(smallArmy)!.color);
+            }
+        }
     }
 }
