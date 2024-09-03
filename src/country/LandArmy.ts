@@ -11,7 +11,7 @@ import { Improvement } from "~/planet/improvement/Improvement";
 
 export class LandArmy extends Army {
     protected _range: Phaser.GameObjects.Rectangle[];
-    movementPoints: number;
+    //movementPoints: number;
     constructor() {
         super();
         this._range = [];
@@ -19,7 +19,8 @@ export class LandArmy extends Army {
 
     override addUnits(target: Unit[], scene: Scene, color: string): Unit[] {
         super.addUnits(target);
-        this.updateMovementPoints();
+        this.sortByCurrentMovementPoints();
+        //this.updateMovementPoints();
         //let country = Country.getCountryByArmy(this);
         //console.log(country);
         //if (!country) throw new Error('Army is not in any country');
@@ -30,7 +31,8 @@ export class LandArmy extends Army {
 
     override removeUnits(target: Unit[], scene: Scene, color: string): Unit[] {
         super.removeUnits(target);
-        this.updateMovementPoints();
+        this.sortByCurrentMovementPoints();
+        //this.updateMovementPoints();
         //let country = Country.getCountryByArmy(this);
         //console.log(country);
         //if (!country) throw new Error('Army is not in any country');
@@ -42,8 +44,22 @@ export class LandArmy extends Army {
         super.create(x, y);
     }
 
-    updateMovementPoints() {
-        this.movementPoints = Math.min(...this._units.map(unit => unit.movementPoints));
+    getCurrentAllMovementPoints() {
+        //this.movementPoints = Math.min(...this._units.map(unit => (unit as PlanetUnit).currentMovementPoints));
+        //this._units.forEach(unit => (unit as PlanetUnit).currentMovementPoints = this.movementPoints);
+        return Math.min(...this._units.map(unit => (unit as PlanetUnit).currentMovementPoints));
+    }
+
+    clearCurrentAllMovementPoints() {
+        this._units.forEach(unit => (unit as PlanetUnit).currentMovementPoints = 0);
+    }
+
+    sortByCurrentMovementPoints() {
+        this._units = this._units.sort((unit1, unit2) => (unit2 as PlanetUnit).currentMovementPoints - (unit1 as PlanetUnit).currentMovementPoints);
+    }
+
+    reduceCurrentMovementPoints(totalCost: number) {
+        this._units.forEach(unit => (unit as PlanetUnit).currentMovementPoints -= totalCost);
     }
 
     move(x: number, y: number, range: Tile[], planetScene: PlanetScene, toArmy: LandArmy | null, improvement: Improvement | null) {
@@ -76,11 +92,14 @@ export class LandArmy extends Army {
             if (toArmy) {
                 if (toArmy.getUnitsType() === this.getUnitsType() &&
                     Country.getCountryByArmy(toArmy) === Country.getCountryByArmy(this)) {
+                    this.reduceCurrentMovementPoints(totalCost);
+                    //this.updateMovementPoints();
                     this.addAllFromArmy(toArmy, planetScene, Country.getCountryByArmy(this)!.color);
                     Country.removeArmy(toArmy);
                 }
                 else if (Country.getCountryByArmy(toArmy) !== Country.getCountryByArmy(this)) {
                     this.meleeAttack(toArmy);
+                    this.clearCurrentAllMovementPoints();
                     console.log(this);
                     if (this.getUnitsNumber()) {
                         if (toArmy.getUnitsNumber()) {
@@ -104,6 +123,8 @@ export class LandArmy extends Army {
                             }
                         }
                         else {
+                            //this.reduceCurrentMovementPoints(totalCost);
+                            //this.updateMovementPoints();
                             console.log(this);
                             let country = Country.getCountryByArmy(this);
                             if (!country) throw new Error('Army is not in any country');
@@ -114,12 +135,15 @@ export class LandArmy extends Army {
                 }
             }
             else {
+                this.reduceCurrentMovementPoints(totalCost);
+                //this.updateMovementPoints();
                 console.log(this);
                 let country = Country.getCountryByArmy(this);
                 if (!country) throw new Error('Army is not in any country');
                 this.renderLabel(planetScene, country.color);
                 this.menu.clearMenu();
             }
+            this.sortByCurrentMovementPoints();
         };
         //console.log(shortestPath);
         let timerId = setInterval((gen) => {
@@ -176,16 +200,16 @@ export class LandArmy extends Army {
         this._range = [];
     }
 
-    transferOneFromArmy(army: LandArmy, planetScene: PlanetScene, color: string) {
-        this.addUnits([army._units[0]], planetScene, color);
-        army.removeUnits([this._units[0]], planetScene, color);
+    transferOneFromArmy(army: Army, scene: Scene, color: string) {
+        this.addUnits([(army as LandArmy)._units[0]], scene as PlanetScene, color);
+        (army as LandArmy).removeUnits([this._units[0]], scene as PlanetScene, color);
     }
 
-    addAllFromArmy(army: LandArmy, planetScene: PlanetScene, color: string) {
-        this.addUnits(army._units, planetScene, color);
+    addAllFromArmy(army: Army, scene: Scene, color: string) {
+        this.addUnits((army as LandArmy)._units, scene as PlanetScene, color);
     }
 
-    meleeAttack(army: LandArmy) {
+    meleeAttack(army: Army) {
         let thisNumber = this.getUnitsNumber();
         let armyNumber = army.getUnitsNumber();
 
@@ -199,14 +223,14 @@ export class LandArmy extends Army {
             bigArmy = this;
             smallArmy = army;
             bigUnits = this._units;
-            smallUnits = army._units;
+            smallUnits = (army as LandArmy)._units;
             bigNumber = thisNumber;
             smallNumber = armyNumber;
         }
         else {
             bigArmy = army;
             smallArmy = this;
-            bigUnits = army._units;
+            bigUnits = (army as LandArmy)._units;
             smallUnits = this._units;
             bigNumber = armyNumber;
             smallNumber = thisNumber;

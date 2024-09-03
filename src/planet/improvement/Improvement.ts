@@ -5,7 +5,6 @@ export abstract class Improvement {
 
     protected _x: number;
     protected _y: number;
-    population: number;
     terrainTypeId: number;
     name: string;
     constructor() {
@@ -16,7 +15,6 @@ export abstract class Improvement {
         this._x = x;
         this._y = y;
         this.name = name;
-        this.population = population;
 
         let country = Country.getCurrentCountry();
         let tile = planetScene.planet.tiles.getTileByXY(this._x, this._y);

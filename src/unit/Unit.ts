@@ -1,6 +1,5 @@
 export abstract class Unit {
     name: string;
-    movementPoints: number;
     meleeAttackDice: string;
     constructor() {
         

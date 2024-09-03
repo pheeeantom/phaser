@@ -83,4 +83,10 @@ export abstract class Army {
             {color: color, backgroundColor: '#ffffff'}).setDepth(300);
         }
     }
+
+    abstract meleeAttack(army: Army): void;
+
+    abstract transferOneFromArmy(army: Army, scene: Scene, color: string): void;
+
+    abstract addAllFromArmy(army: Army, scene: Scene, color: string): void;
 }

@@ -8,6 +8,7 @@ import { LandArmy } from "../country/LandArmy";
 import { Army } from "~/country/Army";
 import { Tiles } from "../planet/Tiles";
 import { Improvement } from "~/planet/improvement/Improvement";
+import { Economic } from "../game/Economic";
 
 export class PlanetScene extends Scene{
 
@@ -46,6 +47,8 @@ export class PlanetScene extends Scene{
   }
 
   create(){
+    new Game(new Economic(this));
+
     this.camera = new Camera(this.cameras.main);
 
   	this.planetMap = this.add.tilemap(this.planet.name);
@@ -73,33 +76,27 @@ export class PlanetScene extends Scene{
     this.planet.tiles.generateTiles(this);
                                   this.planet.initTmp(this, Game.getInstance());
 
+
+    let prevCurArmy: LandArmy;
+    let movingArmy: LandArmy | null;
     this.input.on("pointerup",  (pointer) => {
       if (this.planet.curArmy) {
         if (this.planet.activated !== "none") {
           let {x: newX1, y: newY1} = this.toSceneCoords(pointer.x, pointer.y);
-          if (!this.planet.tiles.getMovementRange(this.planet.curArmy).includes(this.planet.tiles.getTileByXY(newX1, newY1))) {
+          if (!this.planet.tiles.getMovementRange(this.planet.curArmy).includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
+            (this.planet.curArmy.x === newX1 && this.planet.curArmy.y === newY1)) {
+            console.log(200000000);
+            if (movingArmy) {
+              this.planet.curArmy.clearRange();
+              this.planet.curArmy = prevCurArmy;
+              this.planet.curArmy.addAllFromArmy(movingArmy, this, Country.getCountryByArmy(movingArmy)!.color);
+              Country.removeArmy(movingArmy);
+            }
             this.planet.curArmy.clearRange();
             this.planet.activated = "none";
             this.planet.curArmy = null;
             console.log(Country.allArmies());
             return;
-          }
-          let movingArmy: LandArmy | null = null;
-          if (this.planet.activated === "move one") {
-            let singleUnitArmy = new LandArmy();
-            singleUnitArmy.create(this.planet.curArmy.x, this.planet.curArmy.y);
-            movingArmy = singleUnitArmy;
-          }
-          else if (this.planet.activated === "move all") {
-            movingArmy = null;
-          }
-          if (movingArmy) {
-            let country = Country.getCurrentCountry();
-            movingArmy = country.addArmy(movingArmy!, this) as LandArmy;
-            movingArmy.transferOneFromArmy(this.planet.curArmy, this, country.color);
-            this.planet.curArmy.clearRange();
-            this.planet.curArmy.menu.clearMenu();
-            this.planet.curArmy = movingArmy;
           }
           console.log(this.planet.curArmy);
           let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
@@ -111,7 +108,28 @@ export class PlanetScene extends Scene{
           console.log(Country.allArmies());
           return;
         }
+
+        
+
         this.planet.activated = this.planet.curArmy.menu.click(pointer.x, pointer.y, this.planet.curArmy.getUnitsNumber(), this);
+        prevCurArmy = this.planet.curArmy;
+        if (this.planet.activated === "move one") {
+          let singleUnitArmy = new LandArmy();
+          singleUnitArmy.create(this.planet.curArmy.x, this.planet.curArmy.y);
+          movingArmy = singleUnitArmy;
+        }
+        else if (this.planet.activated === "move all") {
+          movingArmy = null;
+        }
+        if (movingArmy) {
+          let country = Country.getCurrentCountry();
+          movingArmy = country.addArmy(movingArmy!, this) as LandArmy;
+          movingArmy.transferOneFromArmy(this.planet.curArmy, this, country.color);
+          this.planet.curArmy.clearRange();
+          this.planet.curArmy.menu.clearMenu();
+          this.planet.curArmy = movingArmy;
+        }
+        this.planet.curArmy.renderMovementRange();
         console.log(this.planet.activated);
         if (this.planet.activated === "none") {
           this.planet.curArmy.clearRange();

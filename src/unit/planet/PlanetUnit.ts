@@ -4,6 +4,8 @@ import { PlanetScene } from "../../scenes/PlanetScene";
 import { Tile } from "~/planet/Tile";
 
 export abstract class PlanetUnit extends Unit {
+    movementPoints: number;
+    currentMovementPoints: number;
     constructor() {
         super();
     }

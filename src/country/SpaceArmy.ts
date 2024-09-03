@@ -20,4 +20,16 @@ export class SpaceArmy extends Army {
     override create(x: number, y: number) {
         super.create(x, y);
     }
+
+    meleeAttack(army: Army) {
+
+    }
+
+    transferOneFromArmy(army: Army, scene: Scene, color: string) {
+
+    }
+
+    addAllFromArmy(army: Army, scene: Scene, color: string) {
+
+    }
 }

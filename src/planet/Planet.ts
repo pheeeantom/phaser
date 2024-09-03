@@ -69,7 +69,7 @@ export class Planet {
         }
         else {
             this.curArmy = this.tiles.getArmyByXYAndCountry(x, y, Country.getCurrentCountry());
-            this.curArmy?.renderMovementRange();
+            //this.curArmy?.renderMovementRange();
             this.curArmy?.menu.render(planetScene, x, y);
         }
     }

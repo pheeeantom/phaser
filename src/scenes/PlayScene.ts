@@ -6,7 +6,6 @@ export class PlayScene extends Scene {
   gameObj: Game;
   constructor(){
     super("playGame");
-    new Game();
   }
 
   create(){

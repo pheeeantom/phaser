@@ -50,7 +50,7 @@ export class Tiles {
         nodeCost0 = neighbour.movementCost;
       }
       else if (!neighbour.water && armyOnTile && isEnemy) {
-        nodeCost0 = army.movementPoints - currentCost;
+        nodeCost0 = army.getCurrentAllMovementPoints() > 0 ? army.getCurrentAllMovementPoints() - currentCost : nodeCost0 = Number.POSITIVE_INFINITY;
       }
       else {
         nodeCost0 = Number.POSITIVE_INFINITY;
@@ -167,7 +167,7 @@ export class Tiles {
                 const nodeCost = this.calcCost(neighbour, army, currentCost);
                 const newCost = currentCost + nodeCost;
 
-                if (newCost <= (army as LandArmy).movementPoints) {
+                if (newCost <= (army as LandArmy).getCurrentAllMovementPoints()) {
                     if (!visitedNodes.has(neighbour)) {
                         visitedNodes.set(neighbour, currentNode);
                         costSoFar.set(neighbour, newCost);
