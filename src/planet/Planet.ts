@@ -64,11 +64,11 @@ export class Planet {
     }
 
     chooseCurUnit(x: number, y: number, planetScene: PlanetScene): void {
-        if (!Country.getCurrentCountry()) {
+        if (!Game.getInstance().turn.getCurrentCountry()) {
             throw new Error('No current country');
         }
         else {
-            this.curArmy = this.tiles.getArmyByXYAndCountry(x, y, Country.getCurrentCountry());
+            this.curArmy = this.tiles.getArmyByXYAndCountry(x, y, Game.getInstance().turn.getCurrentCountry());
             //this.curArmy?.renderMovementRange();
             this.curArmy?.menu.render(planetScene, x, y);
         }

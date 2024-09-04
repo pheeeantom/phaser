@@ -1,3 +1,4 @@
+import { Game } from "../../game/Game";
 import { Country } from "../../country/Country";
 import { PlanetScene } from "~/scenes/PlanetScene";
 
@@ -16,7 +17,7 @@ export abstract class Improvement {
         this._y = y;
         this.name = name;
 
-        let country = Country.getCurrentCountry();
+        let country = Game.getInstance().turn.getCurrentCountry();
         let tile = planetScene.planet.tiles.getTileByXY(this._x, this._y);
         planetScene.terrainPlanetLayer.putTileAt(this.terrainTypeId, this._x, this._y);
         tile.improvement = this;

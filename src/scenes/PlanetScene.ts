@@ -1,4 +1,4 @@
-import { Scene } from "phaser";
+import { GameObjects, Scene } from "phaser";
 import { Planet } from "../planet/Planet";
 import { Game } from "../game/Game";
 import { PlanetUnit } from "../unit/planet/PlanetUnit";
@@ -17,6 +17,7 @@ export class PlanetScene extends Scene{
   terrainPlanetLayer!: Phaser.Tilemaps.TilemapLayer;
   planet: Planet;
   camera: Camera;
+  additionalCamera: Phaser.Cameras.Scene2D.Camera;
   //curUnit!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   //curUnit: PlanetUnit | null;
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -47,8 +48,11 @@ export class PlanetScene extends Scene{
   }
 
   create(){
-    new Game(new Economic(this));
 
+    /*this.additionalCamera = this.cameras.add();
+    this.additionalCamera.addToRenderList(Game.getInstance().economic.mainPanel.mainMenu);
+    this.additionalCamera.ignore(GameObjects.)
+    this.cameras.main.ignore(Game.getInstance().economic.mainPanel.mainMenu);*/
     this.camera = new Camera(this.cameras.main);
 
   	this.planetMap = this.add.tilemap(this.planet.name);
@@ -86,23 +90,17 @@ export class PlanetScene extends Scene{
           if (!this.planet.tiles.getMovementRange(this.planet.curArmy).includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
             (this.planet.curArmy.x === newX1 && this.planet.curArmy.y === newY1)) {
             console.log(200000000);
-            if (movingArmy) {
-              this.planet.curArmy.clearRange();
-              this.planet.curArmy = prevCurArmy;
-              this.planet.curArmy.addAllFromArmy(movingArmy, this, Country.getCountryByArmy(movingArmy)!.color);
-              Country.removeArmy(movingArmy);
-            }
-            this.planet.curArmy.clearRange();
+            this.planet.curArmy.cancelMove(movingArmy, prevCurArmy, this);
             this.planet.activated = "none";
             this.planet.curArmy = null;
             console.log(Country.allArmies());
             return;
           }
           console.log(this.planet.curArmy);
-          let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
-          let improvement = this.planet.tiles.getImprovementByXY(newX1, newY1);
+          //let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
+          //let improvement = this.planet.tiles.getImprovementByXY(newX1, newY1);
           this.planet.curArmy.move(pointer.x, pointer.y,
-            this.planet.tiles.getMovementRange(this.planet.curArmy), this, toArmy, improvement);
+            this.planet.tiles.getMovementRange(this.planet.curArmy), this);
           this.planet.activated = "none";
           this.planet.curArmy = null;
           console.log(Country.allArmies());
@@ -122,7 +120,7 @@ export class PlanetScene extends Scene{
           movingArmy = null;
         }
         if (movingArmy) {
-          let country = Country.getCurrentCountry();
+          let country = Game.getInstance().turn.getCurrentCountry();
           movingArmy = country.addArmy(movingArmy!, this) as LandArmy;
           movingArmy.transferOneFromArmy(this.planet.curArmy, this, country.color);
           this.planet.curArmy.clearRange();

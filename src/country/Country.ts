@@ -80,12 +80,6 @@ export class Country {
         return Country._countries.get(name);
     }
 
-    static getCurrentCountry() {
-        let country = Country.getCountryByName(Game.getInstance().turn.country);
-        if (!country) throw new Error('No current country');
-        return country;
-    }
-
     static getCountryByArmy(army: Army): Country | null {
         return [...Country._countries.values()].find(country => country.armies.indexOf(army) >= 0) ?? null;
     }
