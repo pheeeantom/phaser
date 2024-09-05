@@ -9,6 +9,7 @@ import { Army } from "~/country/Army";
 import { Tiles } from "../planet/Tiles";
 import { Improvement } from "~/planet/improvement/Improvement";
 import { Economic } from "../game/Economic";
+import { PlayScene } from "./PlayScene";
 
 export class PlanetScene extends Scene{
 
@@ -21,6 +22,8 @@ export class PlanetScene extends Scene{
   //curUnit!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   //curUnit: PlanetUnit | null;
   cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+
+  playScene: PlayScene;
 
   constructor(){
     super("planet");
@@ -41,6 +44,7 @@ export class PlanetScene extends Scene{
 
   init(data){
     this.planet = data.planet;
+    this.playScene = data.playscene;
   }
 
   preload(){
@@ -48,7 +52,6 @@ export class PlanetScene extends Scene{
   }
 
   create(){
-
     /*this.additionalCamera = this.cameras.add();
     this.additionalCamera.addToRenderList(Game.getInstance().economic.mainPanel.mainMenu);
     this.additionalCamera.ignore(GameObjects.)
@@ -79,6 +82,11 @@ export class PlanetScene extends Scene{
 
     this.planet.tiles.generateTiles(this);
                                   this.planet.initTmp(this, Game.getInstance());
+
+    Game.getInstance().turn.getCurrentCountry()!.tiles.forEach(tile => {
+      tile.tmpSpawnUnit(this, Game.getInstance().turn.getCurrentCountry()!);
+    });
+    Game.getInstance().economic.mainPanel.setInfo(this.playScene);
 
 
     let prevCurArmy: LandArmy;

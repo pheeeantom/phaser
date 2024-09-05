@@ -10,6 +10,10 @@ export abstract class PlanetUnit extends Unit {
         super();
     }
 
+    restoreCurrentMovementPoints() {
+        this.currentMovementPoints = this.movementPoints;
+    }
+
     // openArr is the tiles that have calculated cost
     // closedArr is the tiles that haven't calculated cost yet
     /*findPath(startTile: GraphTile, endTile: GraphTile, planetScene: PlanetScene): GraphTile[] | undefined {

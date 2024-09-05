@@ -64,12 +64,13 @@ export class Tile {
 
     tmpSpawnUnit(planetScene: PlanetScene, country: Country) {
       let newArmy = new LandArmy();
+      newArmy.create(this.x, this.y);
       let curArmy = planetScene.planet.tiles.getArmyByXYAndCountry(this.x, this.y, country);
+      console.log(newArmy, curArmy);
       if (curArmy) {
           newArmy.addAllFromArmy(curArmy, planetScene, country.color);
           Country.removeArmy(curArmy);
       }
-      newArmy.create(this.x, this.y);
       (country.addArmy(newArmy, planetScene) as LandArmy).addUnits([new Soldier()], planetScene, country.color);
     }
   }

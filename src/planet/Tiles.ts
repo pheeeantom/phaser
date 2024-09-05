@@ -221,6 +221,7 @@ export class Tiles {
   }
 
   private getImprovement(x: number, y: number, pile: Tile[]) {
+    console.log(x, y, pile);
     let tile = pile.find((tile) => {
       return tile.x === x && tile.y === y;
     });

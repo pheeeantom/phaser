@@ -45,10 +45,19 @@ export class Country {
         return target;
     }
 
+    restoreCurrentMovementPoints() {
+        this.armies.forEach(army => (army as LandArmy).restoreCurrentMovementPoints());
+    }
+
     static removeArmy(target: Army): void {
+        console.log(target);
         target.clearIcon();
         target.clearLabel();
         Country.getCountryByArmy(target)!.armies.splice(Country.getCountryByArmy(target)!.armies.indexOf(target), 1);
+    }
+
+    static removeCountry(target: Country) {
+        Country._countries.delete(target.name);
     }
 
     static allTiles() {
@@ -61,6 +70,10 @@ export class Country {
         let pile: Army[] = [];
         [...Country._countries.values()].forEach((country) => {pile.push(...country.armies)});
         return pile;
+    }
+
+    static allCountries() {
+        return Country._countries;
     }
 
     static getCountryByTile(tile: Tile): Country | null {

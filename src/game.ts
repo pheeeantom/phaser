@@ -2,6 +2,7 @@ import {BootScene} from './scenes/BootScene';
 import {PlayScene} from './scenes/PlayScene';
 import {PlanetScene} from './scenes/PlanetScene';
 import { Game } from 'phaser';
+import { WinScene } from './scenes/WinScene';
 
 var config: Phaser.Types.Core.GameConfig = {
   width: 640,
@@ -13,7 +14,7 @@ var config: Phaser.Types.Core.GameConfig = {
         gravity: { x: 0, y: 0 }
     }
   },
-  scene: [BootScene, PlayScene, PlanetScene]
+  scene: [BootScene, PlayScene, PlanetScene, WinScene]
 }
 
 

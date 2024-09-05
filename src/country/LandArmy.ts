@@ -67,10 +67,6 @@ export class LandArmy extends Army {
         console.log(10000000);
         this.clearRange();
         console.log(improvement);
-        if (improvement) {
-            let country = Game.getInstance().turn.getCurrentCountry();
-            improvement.occupy(country, planetScene);
-        }
         if (toArmy) {
             if (toArmy.getUnitsType() === this.getUnitsType() &&
                 Country.getCountryByArmy(toArmy) === Country.getCountryByArmy(this)) {
@@ -78,6 +74,7 @@ export class LandArmy extends Army {
                 //this.updateMovementPoints();
                 this.addAllFromArmy(toArmy, planetScene, Country.getCountryByArmy(this)!.color);
                 Country.removeArmy(toArmy);
+                //console.log(Country.getCountryByArmy(this)!.armies);
                 return;
             }
             if (Country.getCountryByArmy(toArmy) !== Country.getCountryByArmy(this)) {
@@ -113,6 +110,10 @@ export class LandArmy extends Army {
                     if (!country) throw new Error('Army is not in any country');
                     this.renderLabel(planetScene, country.color);
                     this.menu.clearMenu();
+                    if (improvement) {
+                        let country = Game.getInstance().turn.getCurrentCountry();
+                        improvement.occupy(country, planetScene);
+                    }
                 }
             }
             return;
@@ -124,6 +125,11 @@ export class LandArmy extends Army {
         if (!country) throw new Error('Army is not in any country');
         this.renderLabel(planetScene, country.color);
         this.menu.clearMenu();
+
+        if (improvement) {
+            let country = Game.getInstance().turn.getCurrentCountry();
+            improvement.occupy(country, planetScene);
+        }
     }
 
     move(x: number, y: number, range: Tile[], planetScene: PlanetScene) {
@@ -220,6 +226,10 @@ export class LandArmy extends Army {
 
     addAllFromArmy(army: Army, scene: Scene, color: string) {
         this.addUnits((army as LandArmy)._units, scene as PlanetScene, color);
+    }
+
+    restoreCurrentMovementPoints() {
+        this._units.forEach(unit => (unit as PlanetUnit).restoreCurrentMovementPoints());
     }
 
     meleeAttack(army: Army) {

@@ -53,14 +53,18 @@ export class Planet {
         //russianArmy1.movementRange();
         //this.curArmy = russianArmy1;
         let newyork = new City();
-        newyork.place(2, 3, 10000, planetScene, 'newyork');
-        newyork.occupy(Country.getCountryByName('usa')!, planetScene);
+        newyork.place(2, 3, 10000, planetScene, 'newyork', Country.getCountryByName('usa')!);
+        //newyork.occupy(Country.getCountryByName('usa')!, planetScene);
         let moscow = new City();
-        moscow.place(4, 6, 10000, planetScene, 'moscow');
-        moscow.occupy(Country.getCountryByName('russia')!, planetScene);
+        moscow.place(4, 6, 10000, planetScene, 'moscow', Country.getCountryByName('russia')!);
+        //moscow.occupy(Country.getCountryByName('russia')!, planetScene);
         let beijing = new Village();
-        beijing.place(7, 8, 1000, planetScene, 'beijing');
-        beijing.occupy(Country.getCountryByName('china')!, planetScene);
+        beijing.place(7, 8, 1000, planetScene, 'beijing', Country.getCountryByName('china')!);
+        //beijing.occupy(Country.getCountryByName('china')!, planetScene);
+        console.log(Country.allTiles());
+        console.log(Country.getCountryByName('russia')!);
+        console.log(Country.getCountryByName('usa')!);
+        console.log(Country.getCountryByName('china')!);
     }
 
     chooseCurUnit(x: number, y: number, planetScene: PlanetScene): void {

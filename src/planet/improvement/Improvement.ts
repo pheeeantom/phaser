@@ -12,12 +12,11 @@ export abstract class Improvement {
         
     }
 
-    place(x: number, y: number, population: number, planetScene: PlanetScene, name: string) {
+    place(x: number, y: number, population: number, planetScene: PlanetScene, name: string, country: Country) {
         this._x = x;
         this._y = y;
         this.name = name;
 
-        let country = Game.getInstance().turn.getCurrentCountry();
         let tile = planetScene.planet.tiles.getTileByXY(this._x, this._y);
         planetScene.terrainPlanetLayer.putTileAt(this.terrainTypeId, this._x, this._y);
         tile.improvement = this;
@@ -27,8 +26,14 @@ export abstract class Improvement {
 
     occupy(country: Country, planetScene: PlanetScene) {
         let tile = planetScene.planet.tiles.getTileByXY(this._x, this._y);
+        let prevCountry = Country.getCountryByTile(tile)!;
+        //console.log(tile);
         Country.removeTileFromCountry(tile);
         country.addTile(tile);
         tile.renderLabel(planetScene, this.name, country.color);
+        console.log(prevCountry);
+        if (prevCountry.tiles.length === 0) {
+            Game.getInstance().loseCountry(prevCountry, planetScene);
+        }
     }
 }

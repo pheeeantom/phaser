@@ -1,6 +1,7 @@
 import { Improvement } from "./Improvement";
 import { PlanetScene } from "~/scenes/PlanetScene";
 import { LandImprovement } from "./LandImprovement";
+import { Country } from "../../country/Country";
 
 export abstract class Locality extends LandImprovement {
     population: number;
@@ -8,8 +9,8 @@ export abstract class Locality extends LandImprovement {
         super(); 
     }
     
-    override place(x: number, y: number, population: number, planetScene: PlanetScene, name: string) {
-        super.place(x, y, population, planetScene, name);
+    override place(x: number, y: number, population: number, planetScene: PlanetScene, name: string, country: Country) {
+        super.place(x, y, population, planetScene, name, country);
         this.population = population;
     }
 }
