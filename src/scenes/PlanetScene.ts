@@ -91,24 +91,32 @@ export class PlanetScene extends Scene{
 
     let prevCurArmy: LandArmy;
     let movingArmy: LandArmy | null;
+    let maxMP: number = 0;
     this.input.on("pointerup",  (pointer) => {
       if (this.planet.curArmy) {
         if (this.planet.activated !== "none") {
+          this.planet.curArmy.clearRange();
           let {x: newX1, y: newY1} = this.toSceneCoords(pointer.x, pointer.y);
-          if (!this.planet.tiles.getMovementRange(this.planet.curArmy).includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
-            (this.planet.curArmy.x === newX1 && this.planet.curArmy.y === newY1)) {
-            console.log(200000000);
-            this.planet.curArmy.cancelMove(movingArmy, prevCurArmy, this);
+          //let newX1 = this.camera.camera
+          if (!this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP).includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
+            (this.planet.curArmy.getTile() === this.planet.tiles.getTileByXY(newX1, newY1))) {
+            //this.planet.cancelMovingArmy(movingArmy, prevCurArmy, this);
             this.planet.activated = "none";
             this.planet.curArmy = null;
-            console.log(Country.allArmies());
             return;
           }
           console.log(this.planet.curArmy);
           //let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
           //let improvement = this.planet.tiles.getImprovementByXY(newX1, newY1);
+          if (this.planet.activated === "move one") {
+            movingArmy = this.planet.curArmy.pickOne(this);
+            this.planet.curArmy = movingArmy;
+          }
+          else if (this.planet.activated === "move all") {
+            movingArmy = null;
+          }
           this.planet.curArmy.move(pointer.x, pointer.y,
-            this.planet.tiles.getMovementRange(this.planet.curArmy), this);
+            this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP), this);
           this.planet.activated = "none";
           this.planet.curArmy = null;
           console.log(Country.allArmies());
@@ -117,28 +125,37 @@ export class PlanetScene extends Scene{
 
         
 
-        this.planet.activated = this.planet.curArmy.menu.click(pointer.x, pointer.y, this.planet.curArmy.getUnitsNumber(), this);
+        this.planet.activated = this.planet.curArmy.menu.click(pointer.x, pointer.y, this.camera.camera);
+        if (this.planet.activated === "move all") {
+          maxMP = (this.planet.curArmy as LandArmy).getCurrentAllMovementPoints();
+        }
+        else if (this.planet.activated === "move one") {
+          maxMP = (this.planet.curArmy as LandArmy).getCurrentOneMovementPoints();
+        }
+        else {
+          maxMP = 0;
+        }
         prevCurArmy = this.planet.curArmy;
-        if (this.planet.activated === "move one") {
-          let singleUnitArmy = new LandArmy();
-          singleUnitArmy.create(this.planet.curArmy.x, this.planet.curArmy.y);
-          movingArmy = singleUnitArmy;
+        /*if (this.planet.activated === "move one") {
+          movingArmy = this.planet.curArmy.pickOne(this);
+          this.planet.curArmy = movingArmy;
         }
         else if (this.planet.activated === "move all") {
           movingArmy = null;
-        }
-        if (movingArmy) {
+        }*/
+        /*if (movingArmy) {
           let country = Game.getInstance().turn.getCurrentCountry();
           movingArmy = country.addArmy(movingArmy!, this) as LandArmy;
           movingArmy.transferOneFromArmy(this.planet.curArmy, this, country.color);
           this.planet.curArmy.clearRange();
           this.planet.curArmy.menu.clearMenu();
           this.planet.curArmy = movingArmy;
-        }
-        this.planet.curArmy.renderMovementRange();
+        }*/
+
+        this.planet.curArmy.renderMovementRange(this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP));
         console.log(this.planet.activated);
         if (this.planet.activated === "none") {
-          this.planet.curArmy.clearRange();
+          //this.planet.curArmy.clearRange();
           this.planet.curArmy = null;
         }
       }

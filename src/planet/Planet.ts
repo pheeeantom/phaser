@@ -11,6 +11,7 @@ import { Tile } from "./Tile";
 import { Army } from "~/country/Army";
 import { LandArmy } from "../country/LandArmy";
 import { SpaceArmy } from "~/country/SpaceArmy";
+import { Scene } from "phaser";
 
 export class Planet {
     name: string;
@@ -19,7 +20,7 @@ export class Planet {
     activated: string;
     constructor(name) {
         this.name = name;
-        this.tiles = new Tiles();
+        this.tiles = new Tiles(this);
         this.activated = "none";
     }
 
@@ -39,16 +40,25 @@ export class Planet {
         let unit9 = new Soldier();
         let unit10 = new Soldier();
         let unit11 = new Soldier();
+
+        let unit12 = new Soldier();
+        let unit13 = new Soldier();
+        let unit14 = new Soldier();
+        let unit15 = new Soldier();
+
         //console.log(unit1.diceRoll('10d12'));
         let russianArmy1 = new LandArmy();
         let chinaArmy2 = new LandArmy();
-        let russianArmy3 = new LandArmy();
-        russianArmy1.create(7, 3);
-        chinaArmy2.create(7, 4);
-        russianArmy3.create(6, 3);
-        (Country.getCountryByName('russia')!.addArmy(russianArmy1, planetScene) as LandArmy).addUnits([unit1, unit2, unit3, unit4, unit5, unit9, unit10], planetScene, Country.getCountryByName('russia')!.color);
-        (Country.getCountryByName('china')!.addArmy(chinaArmy2, planetScene) as LandArmy).addUnits([unit6, unit7, unit11], planetScene, Country.getCountryByName('china')!.color);
-        (Country.getCountryByName('russia')!.addArmy(russianArmy3, planetScene) as LandArmy).addUnits([unit8], planetScene, Country.getCountryByName('russia')!.color);
+        let usaArmy3 = new LandArmy();
+        //russianArmy1.create(7, 3);
+        //chinaArmy2.create(7, 4);
+        //russianArmy3.create(6, 3);
+        russianArmy1.create(7, 3, this);
+        chinaArmy2.create(7, 8, this);
+        usaArmy3.create(2, 3, this);
+        (Country.getCountryByName('russia')!.addArmy(russianArmy1, planetScene) as LandArmy).addUnits([unit1, unit2, unit3, unit4, unit5], planetScene, Country.getCountryByName('russia')!.color);
+        (Country.getCountryByName('china')!.addArmy(chinaArmy2, planetScene) as LandArmy).addUnits([unit6, unit7, unit8, unit9, unit10], planetScene, Country.getCountryByName('china')!.color);
+        (Country.getCountryByName('usa')!.addArmy(usaArmy3, planetScene) as LandArmy).addUnits([unit11, unit12, unit13, unit14, unit15], planetScene, Country.getCountryByName('usa')!.color);
         //russianArmy1.meleeAttack(russianArmy2);
         //russianArmy1.movementRange();
         //this.curArmy = russianArmy1;
@@ -56,7 +66,7 @@ export class Planet {
         newyork.place(2, 3, 10000, planetScene, 'newyork', Country.getCountryByName('usa')!);
         //newyork.occupy(Country.getCountryByName('usa')!, planetScene);
         let moscow = new City();
-        moscow.place(4, 6, 10000, planetScene, 'moscow', Country.getCountryByName('russia')!);
+        moscow.place(7, 3, 10000, planetScene, 'moscow', Country.getCountryByName('russia')!);
         //moscow.occupy(Country.getCountryByName('russia')!, planetScene);
         let beijing = new Village();
         beijing.place(7, 8, 1000, planetScene, 'beijing', Country.getCountryByName('china')!);
@@ -74,7 +84,15 @@ export class Planet {
         else {
             this.curArmy = this.tiles.getArmyByXYAndCountry(x, y, Game.getInstance().turn.getCurrentCountry());
             //this.curArmy?.renderMovementRange();
-            this.curArmy?.menu.render(planetScene, x, y);
+            this.curArmy?.menu.render(x, y, planetScene);
         }
     }
+
+    /*cancelMovingArmy(movingArmy: LandArmy | null, prevCurArmy: LandArmy, planetScene: PlanetScene) {
+        console.log(200000000);
+        this.curArmy?.cancelMovingArmy(movingArmy, prevCurArmy, planetScene);
+        this.activated = "none";
+        this.curArmy = null;
+        console.log(Country.allArmies());
+    }*/
 }

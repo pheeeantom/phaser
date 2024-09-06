@@ -4,13 +4,15 @@ import { Tile } from "./Tile";
 import { LandArmy } from "../country/LandArmy";
 import { Army } from "../country/Army";
 import { Country } from "../country/Country";
+import { Planet } from "./Planet";
 
 export class Tiles {
     private _grid: Tile[][];
     private _cols: number;
     private _rows: number;
-    constructor() {
-
+    private _planet: Planet;
+    constructor(planet: Planet) {
+      this._planet = planet;
     }
 
     generateTiles(planetScene: PlanetScene) {
@@ -21,7 +23,7 @@ export class Tiles {
         for (let i = 0; i < this._cols; i++) {
             this._grid.push([]);
             for (let j = 0; j < map[i].length; j++) {
-                this._grid[i][j] = new Tile(i, j, map[j][i].index, map[j][i].properties.movement_cost, map[j][i].properties.water);
+                this._grid[i][j] = new Tile(i, j, map[j][i].index, map[j][i].properties.movement_cost, map[j][i].properties.water, this._planet);
             }
         }
         for (let i = 0; i < this._cols; i++) {
@@ -40,6 +42,7 @@ export class Tiles {
 
     private calcCost(neighbour: Tile, army: LandArmy, currentCost: number): number {
       let armyOnTile = this.getArmyByXY(neighbour.x, neighbour.y);
+      console.log(armyOnTile, army);
       let isMine = armyOnTile && Country.getCountryByArmy(armyOnTile) === Country.getCountryByArmy(army);
       let isEnemy = armyOnTile && Country.getCountryByArmy(armyOnTile) !== Country.getCountryByArmy(army)
       let nodeCost0;
@@ -55,6 +58,7 @@ export class Tiles {
       else {
         nodeCost0 = Number.POSITIVE_INFINITY;
       }
+      console.log(currentCost, nodeCost0);
       return nodeCost0;
     }
 
@@ -132,12 +136,12 @@ export class Tiles {
         return [];
     }
 
-    getMovementRange(army: LandArmy): Tile[] {
+    getMovementRange(army: LandArmy, maxMP: number): Tile[] {
         let visitedNodes = new Map();
         const costSoFar = new Map();
         const nodesToVisitQueue: Tile[] = [];
 
-        let startPoint = this._grid[army.x][army.y];
+        let startPoint = army.getTile();
         nodesToVisitQueue.push(startPoint);
         costSoFar.set(startPoint, 0);
         visitedNodes.set(startPoint, null);
@@ -167,7 +171,15 @@ export class Tiles {
                 const nodeCost = this.calcCost(neighbour, army, currentCost);
                 const newCost = currentCost + nodeCost;
 
-                if (newCost <= (army as LandArmy).getCurrentAllMovementPoints()) {
+                /*let maxMP: number = (army as LandArmy).getCurrentAllMovementPoints();
+                if (action === "move all") {
+                  maxMP = (army as LandArmy).getCurrentAllMovementPoints();
+                }
+                else if (action === "move one") {
+                  maxMP = (army as LandArmy).getCurrentOneMovementPoints();
+                }*/
+
+                if (newCost <= maxMP) {
                     if (!visitedNodes.has(neighbour)) {
                         visitedNodes.set(neighbour, currentNode);
                         costSoFar.set(neighbour, newCost);
@@ -209,6 +221,7 @@ export class Tiles {
 
   getImprovementByXY(x: number, y: number) {
     let pile = Country.allTiles();
+    console.log(x, y, pile);
     return this.getImprovement(x, y, pile);
   }
 
@@ -216,7 +229,7 @@ export class Tiles {
     return pile.filter(
       (army) => army instanceof LandArmy
     ).find((army) => {
-      return army.x === x && army.y === y;
+      return army.getTile() === this.getTileByXY(x, y);
     }) ?? null;
   }
 

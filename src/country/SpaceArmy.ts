@@ -1,8 +1,10 @@
 import { Unit } from "~/unit/Unit";
 import { Army } from "./Army";
 import { Scene } from "phaser";
+import { Space } from "~/space/Space";
+import { CreateableSpace } from "~/interfaces/Createable";
 
-export class SpaceArmy extends Army {
+export class SpaceArmy extends Army implements CreateableSpace<SpaceArmy> {
     constructor() {
         super();
     }
@@ -17,8 +19,9 @@ export class SpaceArmy extends Army {
         return target;
     }
 
-    override create(x: number, y: number) {
+    override create(x: number, y: number, space: Space) {
         super.create(x, y);
+        return this;
     }
 
     meleeAttack(army: Army) {

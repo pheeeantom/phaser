@@ -49,13 +49,6 @@ export class Country {
         this.armies.forEach(army => (army as LandArmy).restoreCurrentMovementPoints());
     }
 
-    static removeArmy(target: Army): void {
-        console.log(target);
-        target.clearIcon();
-        target.clearLabel();
-        Country.getCountryByArmy(target)!.armies.splice(Country.getCountryByArmy(target)!.armies.indexOf(target), 1);
-    }
-
     static removeCountry(target: Country) {
         Country._countries.delete(target.name);
     }
@@ -84,8 +77,10 @@ export class Country {
 
     static removeTileFromCountry(tile: Tile): void {
         let country = Country.getCountryByTile(tile);
+        console.log(country);
         if (country) {
-            country.tiles = country.tiles.filter((tile) => country.tiles.indexOf(tile), 1);
+            country.tiles.splice(country.tiles.indexOf(tile), 1);
+            console.log(country.tiles);
         }
     }
 

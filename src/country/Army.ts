@@ -1,17 +1,98 @@
 import { Unit } from "~/unit/Unit";
-import { ArmyActions } from "../ui/ArmyActions";
 import { Scene } from "phaser";
 import { PlanetScene } from "~/scenes/PlanetScene";
+import { Country } from "./Country";
+import { Createable } from "../interfaces/Createable";
+import { ContextMenu } from"../interfaces/ContextMenu";
 
-export abstract class Army {
+class ArmyActions implements ContextMenu {
+    private _menu: Phaser.GameObjects.Text;
+    private _army: Army;
+    constructor(army: Army) {
+        this._army = army;
+    }
+
+    click(pixelX: number, pixelY: number, camera: Phaser.Cameras.Scene2D.Camera) {
+        /*let {x: menuLeftX, y: menuTopY} = (this.menu.scene as PlanetScene).toSceneCoordsPixels(this.menu.x, this.menu.y);
+        let {x: menuRightX, y: menuBottomY} = (this.menu.scene as PlanetScene).
+            toSceneCoordsPixels(this.menu.x + this.menu.width, this.menu.y + 1 * this.menu.height / 1);*/
+        /*let camera = (this.menu.scene as PlanetScene).camera.camera;
+        let {x: menuLeftX, y: menuTopY} = camera.getWorldPoint(this.menu.x, this.menu.y);
+        let {x: menuRightX, y: menuBottomY} = camera.getWorldPoint(this.menu.x + this.menu.width,
+            this.menu.y + 1 * this.menu.height / 1);*/
+        /*let menuLeftX = (-(this.menu.scene as PlanetScene).camera.camera.scrollX + this.menu.x) *
+            (this.menu.scene as PlanetScene).camera.camera.zoom;
+        let menuTopY = (-(this.menu.scene as PlanetScene).camera.camera.scrollY + this.menu.y) *
+            (this.menu.scene as PlanetScene).camera.camera.zoom;
+        let menuRightX = (-(this.menu.scene as PlanetScene).camera.camera.scrollX + this.menu.x + this.menu.width) *
+            (this.menu.scene as PlanetScene).camera.camera.zoom;
+        let menuBottomY = (-(this.menu.scene as PlanetScene).camera.camera.scrollY + this.menu.y + 1 * this.menu.height / 1) *
+            (this.menu.scene as PlanetScene).camera.camera.zoom;*/
+        /*let camera = (this.menu.scene as PlanetScene).camera.camera;
+        let {x: pixelXNew, y: pixelYNew} = camera.getWorldPoint(pixelX, pixelY);
+        let {x: menuLeftX, y: menuTopY} = camera.getWorldPoint(this.menu.x, this.menu.y);
+        let {x: menuRightX, y: menuBottomY} = camera.getWorldPoint(this.menu.x + this.menu.width,
+            this.menu.y + 1 * this.menu.height / 1);*/
+        //let camera = planetScene.camera.camera;
+        let {x: pixelXNew, y: pixelYNew} = camera.getWorldPoint(pixelX, pixelY);
+        let menuLeftX = this._menu.x;
+        let menuTopY = this._menu.y;
+        let menuRightX = this._menu.x + this._menu.width;;
+        let height = 1 * this._menu.height / 2;
+
+        let unitsLen = this._army.getUnitsNumber();
+        this.clear();
+        if (pixelXNew > menuLeftX && pixelXNew < menuRightX &&
+            pixelYNew > menuTopY && pixelYNew < menuTopY + height) {
+            if (unitsLen > 1)
+                return "move one";
+            else
+                return "move all";
+        }
+        else if (pixelXNew > menuLeftX && pixelXNew < menuRightX &&
+            pixelYNew > menuTopY + height && pixelYNew < menuTopY + 2 * height) {
+            return "move all";
+        }
+        else {
+            return "none";
+        }
+        /*console.log(camera.width);
+        console.log(menuLeftX);
+        console.log(this.menu.x);
+        console.log(pixelXNew);*/
+    }
+
+    clear() {
+        this._menu?.destroy();
+    }
+
+    render(x: number, y: number, scene: Scene) {
+        this.clear();
+        //let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(x, y);
+        //if (pixelX !== null && pixelY !== null) {
+        this._menu =
+            scene.add.text(x*64 + 32, y*64 + 10, 'move one\nmove all',
+            {color: '#000000', backgroundColor: '#555555'}).setDepth(400);
+        //}
+    }
+}
+
+export abstract class Army implements Createable<Army> {
     protected _units: Unit[];
-    x: number;
-    y: number;
+    protected _x: number;
+    protected _y: number;
     protected _sprite: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     protected _label: Phaser.GameObjects.Text;
     menu: ArmyActions;
     constructor() {
 
+    }
+
+    remove(): void {
+        console.log(this);
+        this.clearIcon();
+        this.clearLabel();
+        Country.getCountryByArmy(this)!.armies.splice(Country.getCountryByArmy(this)!.armies.indexOf(this), 1);
     }
 
     protected addUnits(target: Unit[], scene?: Scene, color?: string): void {
@@ -41,15 +122,16 @@ export abstract class Army {
         return target;*/
     }
 
-    isContainsUnit(target: Unit): boolean {
+    /*isContainsUnit(target: Unit): boolean {
         return this._units.indexOf(target) >= 0;
-    }
+    }*/
 
-    protected create(x: number, y: number) {
+    create(x: number, y: number, place?: unknown): Army {
         this._units = [];
-        this.x = x;
-        this.y = y;
-        this.menu = new ArmyActions();
+        this._x = x;
+        this._y = y;
+        this.menu = new ArmyActions(this);
+        return this;
     }
 
     getUnitsType() {
@@ -60,28 +142,28 @@ export abstract class Army {
         return this._units.length;
     }
 
-    renderIcon(scene: Scene) {
+    protected renderIcon(scene: Scene) {
         this.clearIcon();
-        this._sprite = scene.physics.add.sprite(64*this.x, 64*this.y, this.getUnitsType()).setOrigin(0, 0).setDepth(200);
+        this._sprite = scene.physics.add.sprite(64*this._x, 64*this._y, this.getUnitsType()).setOrigin(0, 0).setDepth(200);
     }
 
-    clearIcon() {
+    protected clearIcon() {
         this._sprite?.destroy();
     }
 
-    clearLabel() {
-        this._label?.destroy();
+    protected renderLabel(scene: Scene, color: string) {
+        this.clearLabel();
+        //let {x: pixelX, y: pixelY} = camera.getWorldPoint(this.x*64, this.y*64);
+        //if (pixelX !== null && pixelY !== null) {
+        console.log(String(this._units.length));
+        this._label =
+            scene.add.text(this._x*64 + 54, this._y*64 + 50, String(this._units.length),
+            {color: color, backgroundColor: '#ffffff'}).setDepth(300);
+        //}
     }
 
-    renderLabel(planetScene: PlanetScene, color: string) {
-        this.clearLabel();
-        let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(this.x, this.y);
-        if (pixelX !== null && pixelY !== null) {
-        console.log(String(this._units.length));
-          this._label =
-            planetScene.add.text(pixelX + 54, pixelY + 50, String(this._units.length),
-            {color: color, backgroundColor: '#ffffff'}).setDepth(300);
-        }
+    protected clearLabel() {
+        this._label?.destroy();
     }
 
     abstract meleeAttack(army: Army): void;

@@ -67,7 +67,7 @@ export class Game {
     loseCountry(country: Country, scene: Scene): void {
         console.log(country);
         for (let i = 0; i < country.armies.length; i++) {
-            Country.removeArmy(country.armies[i]);
+            country.armies[i].remove();
             i--;
         }
         this.turn.removeCountry(country.name);

@@ -4,6 +4,7 @@ import { Tiles } from "./Tiles";
 import { LandArmy } from "../country/LandArmy";
 import { Country } from "../country/Country";
 import { Soldier } from "../unit/planet/martial/land/Soldier";
+import { Planet } from "./Planet";
 
 //constructor function to create all the grid points as objects containind the data for the points
 export class Tile {
@@ -19,7 +20,8 @@ export class Tile {
     parent: Tile | undefined;
     improvement: Improvement | null;
     label: Phaser.GameObjects.Text;
-    constructor(x: number, y: number, terrainTypeId: number, movementCost: number, water: boolean) {
+    private _planet: Planet;
+    constructor(x: number, y: number, terrainTypeId: number, movementCost: number, water: boolean, planet: Planet) {
         this.x = x; //x location of the grid point
         this.y = y; //y location of the grid point
         this.f = 0; //total cost function
@@ -31,6 +33,8 @@ export class Tile {
         this.terrainTypeId = terrainTypeId;
         this.movementCost = movementCost;
         this.water = water;
+
+        this._planet = planet;
     }
     
   
@@ -64,12 +68,12 @@ export class Tile {
 
     tmpSpawnUnit(planetScene: PlanetScene, country: Country) {
       let newArmy = new LandArmy();
-      newArmy.create(this.x, this.y);
+      newArmy.create(this.x, this.y, this._planet);
       let curArmy = planetScene.planet.tiles.getArmyByXYAndCountry(this.x, this.y, country);
       console.log(newArmy, curArmy);
       if (curArmy) {
           newArmy.addAllFromArmy(curArmy, planetScene, country.color);
-          Country.removeArmy(curArmy);
+          curArmy.remove();
       }
       (country.addArmy(newArmy, planetScene) as LandArmy).addUnits([new Soldier()], planetScene, country.color);
     }
