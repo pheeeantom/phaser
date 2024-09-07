@@ -40,7 +40,7 @@ export class Tiles {
         return d1 + d2;
     }
 
-    private calcCost(neighbour: Tile, army: LandArmy, currentCost: number): number {
+    private calcCost(neighbour: Tile, army: LandArmy, currentCost: number, maxMP: number): number {
       let armyOnTile = this.getArmyByXY(neighbour.x, neighbour.y);
       console.log(armyOnTile, army);
       let isMine = armyOnTile && Country.getCountryByArmy(armyOnTile) === Country.getCountryByArmy(army);
@@ -53,7 +53,7 @@ export class Tiles {
         nodeCost0 = neighbour.movementCost;
       }
       else if (!neighbour.water && armyOnTile && isEnemy) {
-        nodeCost0 = army.getCurrentAllMovementPoints() > 0 ? army.getCurrentAllMovementPoints() - currentCost : Number.POSITIVE_INFINITY;
+        nodeCost0 = /*army.getCurrentAllMovementPoints()*/maxMP > 0 ? /*army.getCurrentAllMovementPoints()*/maxMP - currentCost : Number.POSITIVE_INFINITY;
         if (nodeCost0 < neighbour.movementCost) nodeCost0 = Number.POSITIVE_INFINITY;
       }
       else {
@@ -63,7 +63,7 @@ export class Tiles {
       return nodeCost0;
     }
 
-    shortestPath(start: Tile, end: Tile) {
+    shortestPath(start: Tile, end: Tile, maxMP: number) {
         //console.log(this.grid);
         this.clearParent();
         let openSet: Tile[] = [];
@@ -99,8 +99,9 @@ export class Tiles {
       
           let neighbors = current.neighbors;
       
-          for (let i = 0; i < neighbors.length; i++) {
-            let neighbor = neighbors[i];
+          //for (let i = 0; i < neighbors.length; i++) {
+          //  let neighbor = neighbors[i];
+          for (let neighbor of neighbors) {
       
             if (!closedSet.includes(neighbor)) {
               /*let armyOnTile = Tiles.getArmyByXY(neighbor.x, neighbor.y);
@@ -117,7 +118,7 @@ export class Tiles {
               }
               let possibleG = current.g + nodeCost0;*/
 
-              let possibleG = current.g + this.calcCost(neighbor, this.getArmyByXY(start.x, start.y)!, current.g);
+              let possibleG = current.g + this.calcCost(neighbor, this.getArmyByXY(start.x, start.y)!, current.g, maxMP);
       
               if (!openSet.includes(neighbor)) {
                 openSet.push(neighbor);
@@ -169,7 +170,7 @@ export class Tiles {
                   nodeCost0 = Number.POSITIVE_INFINITY
                 }*/
                 const currentCost = costSoFar.get(currentNode);
-                const nodeCost = this.calcCost(neighbour, army, currentCost);
+                const nodeCost = this.calcCost(neighbour, army, currentCost, maxMP);
                 const newCost = currentCost + nodeCost;
 
                 /*let maxMP: number = (army as LandArmy).getCurrentAllMovementPoints();

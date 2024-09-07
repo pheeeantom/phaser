@@ -116,7 +116,7 @@ export class PlanetScene extends Scene{
           //  movingArmy = null;
           //}
           this.planet.curArmy.move(pointer.x, pointer.y,
-            this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP), this);
+            this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP), this, maxMP);
           this.planet.activated = "none";
           this.planet.curArmy = null;
           console.log(Country.allArmies());
@@ -127,14 +127,15 @@ export class PlanetScene extends Scene{
 
         this.planet.activated = this.planet.curArmy.menu.click(pointer.x, pointer.y, this.camera.camera);
         if (this.planet.activated === "move all") {
-          maxMP = (this.planet.curArmy as LandArmy).getCurrentAllMovementPoints();
+          maxMP = this.planet.curArmy.getCurrentAllMovementPoints();
         }
         else if (this.planet.activated === "move one") {
-          maxMP = (this.planet.curArmy as LandArmy).getCurrentOneMovementPoints();
+          maxMP = this.planet.curArmy.getCurrentOneMovementPoints();
         }
         else {
           maxMP = 0;
         }
+        console.log("maxMP: " + maxMP);
         //prevCurArmy = this.planet.curArmy;
         /*if (this.planet.activated === "move one") {
           movingArmy = this.planet.curArmy.pickOne(this);

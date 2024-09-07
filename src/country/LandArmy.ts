@@ -145,7 +145,7 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         this.takeTile(planetScene, this.getTile());
     }
 
-    move(x: number, y: number, range: Tile[], planetScene: PlanetScene) {
+    move(x: number, y: number, range: Tile[], planetScene: PlanetScene, maxMP: number) {
         let {x: newX, y: newY} = (this._sprite.scene as PlanetScene).toSceneCoords(x, y);
         let toArmy = planetScene.planet.tiles.getArmyByXY(newX, newY);
         //let improvement = planetScene.planet.tiles.getImprovementByXY(newX, newY);
@@ -156,7 +156,8 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         }
         let shortestPath = (this._sprite.scene as PlanetScene).planet.tiles.shortestPath(
             (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(this._x, this._y),
-            (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY)
+            (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY),
+            maxMP
         );
         let generateSequence = function*() {
             for (let i = 1; i < shortestPath.length; i++) {
