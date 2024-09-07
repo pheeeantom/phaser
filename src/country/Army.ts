@@ -4,6 +4,7 @@ import { PlanetScene } from "~/scenes/PlanetScene";
 import { Country } from "./Country";
 import { Createable } from "../interfaces/Createable";
 import { ContextMenu } from"../interfaces/ContextMenu";
+import { Tile } from "~/planet/Tile";
 
 class ArmyActions implements ContextMenu {
     private _menu: Phaser.GameObjects.Text;
@@ -92,7 +93,8 @@ export abstract class Army implements Createable<Army> {
         console.log(this);
         this.clearIcon();
         this.clearLabel();
-        Country.getCountryByArmy(this)!.armies.splice(Country.getCountryByArmy(this)!.armies.indexOf(this), 1);
+        Country.removeArmy(this);
+        //Country.getCountryByArmy(this)!.armies.splice(Country.getCountryByArmy(this)!.armies.indexOf(this), 1);
     }
 
     protected addUnits(target: Unit[], scene?: Scene, color?: string): void {
@@ -122,11 +124,15 @@ export abstract class Army implements Createable<Army> {
         return target;*/
     }
 
+    protected clearUnits(): void {
+        this._units = [];
+    }
+
     /*isContainsUnit(target: Unit): boolean {
         return this._units.indexOf(target) >= 0;
     }*/
 
-    create(x: number, y: number, place?: unknown): Army {
+    create(x: number, y: number, place?: unknown): this {
         this._units = [];
         this._x = x;
         this._y = y;
@@ -171,4 +177,6 @@ export abstract class Army implements Createable<Army> {
     abstract transferOneFromArmy(army: Army, scene: Scene, color: string): void;
 
     abstract addAllFromArmy(army: Army, scene: Scene, color: string): void;
+
+    abstract pickOne(scene: Scene): Army;
 }

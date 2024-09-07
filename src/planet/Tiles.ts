@@ -53,7 +53,8 @@ export class Tiles {
         nodeCost0 = neighbour.movementCost;
       }
       else if (!neighbour.water && armyOnTile && isEnemy) {
-        nodeCost0 = army.getCurrentAllMovementPoints() > 0 ? army.getCurrentAllMovementPoints() - currentCost : nodeCost0 = Number.POSITIVE_INFINITY;
+        nodeCost0 = army.getCurrentAllMovementPoints() > 0 ? army.getCurrentAllMovementPoints() - currentCost : Number.POSITIVE_INFINITY;
+        if (nodeCost0 < neighbour.movementCost) nodeCost0 = Number.POSITIVE_INFINITY;
       }
       else {
         nodeCost0 = Number.POSITIVE_INFINITY;
@@ -206,13 +207,13 @@ export class Tiles {
         }
     }
 
-  getArmyByXYAndCountry(x: number, y: number, country: Country) {
+  /*getArmyByXYAndCountry(x: number, y: number, country: Country) {
     return country ? this.getArmy(x, y, country.armies) : null;
   }
 
   getImprovementByXYAndCountry(x: number, y: number, country: Country) {
     return country ? this.getImprovement(x, y, country.tiles) : null;
-  }
+  }*/
 
   getArmyByXY(x: number, y: number) {
     let pile = Country.allArmies();

@@ -10,32 +10,32 @@ import { SpaceArmy } from "./SpaceArmy";
 export class Country {
     name: string;
     color: string;
-    armies: Army[];
-    tiles: Tile[];
+    private _armies: Army[];
+    private _tiles: Tile[];
     private static _countries: Map<string, Country> = new Map<string, Country>();
     constructor(name: string, color: string) {
         this.name = name;
-        this.armies = [];
-        this.tiles = [];
+        this._armies = [];
+        this._tiles = [];
         this.color = color;
         Country._countries.set(name, this);
     }
 
-    isContainsTile(target: Tile): boolean {
-        return this.tiles.indexOf(target) >= 0;
+    private isContainsTile(target: Tile): boolean {
+        return this._tiles.indexOf(target) >= 0;
     }
 
-    isContainsArmy(target: Army): boolean {
-        return this.armies.indexOf(target) >= 0;
+    private isContainsArmy(target: Army): boolean {
+        return this._armies.indexOf(target) >= 0;
     }
 
     addTile(target: Tile): Tile {
-        this.tiles.push(target);
+        this._tiles.push(target);
         return target;
     }
 
     addArmy(target: Army, scene: Scene): Army {
-        this.armies.push(target);
+        this._armies.push(target);
         let country = Country.getCountryByArmy(target);
         console.log(country);
         if (!country) throw new Error('Army is not in any country');
@@ -45,8 +45,28 @@ export class Country {
         return target;
     }
 
+    removeAllArmies() {
+        for (let i = this._armies.length - 1; i >= 0; i--) {
+            this._armies[i].remove();
+        }
+    }
+
     restoreCurrentMovementPoints() {
-        this.armies.forEach(army => (army as LandArmy).restoreCurrentMovementPoints());
+        this._armies.forEach(army => (army as LandArmy).restoreCurrentMovementPoints());
+    }
+
+    hasNoTiles(): boolean {
+        return this._tiles.length === 0;
+    }
+
+    tmpSpawnUnitAll(planetScene: PlanetScene) {
+        this._tiles.forEach(tile => {
+            tile.tmpSpawnUnit(planetScene, this);
+        });
+    }
+
+    static removeArmy(army: Army) {
+        Country.getCountryByArmy(army)!._armies.splice(Country.getCountryByArmy(army)!._armies.indexOf(army), 1);
     }
 
     static removeCountry(target: Country) {
@@ -55,13 +75,13 @@ export class Country {
 
     static allTiles() {
         let pile: Tile[] = [];
-        [...Country._countries.values()].forEach((country) => {pile.push(...country.tiles)});
+        [...Country._countries.values()].forEach((country) => {pile.push(...country._tiles)});
         return pile;
     }
 
     static allArmies() {
         let pile: Army[] = [];
-        [...Country._countries.values()].forEach((country) => {pile.push(...country.armies)});
+        [...Country._countries.values()].forEach((country) => {pile.push(...country._armies)});
         return pile;
     }
 
@@ -79,8 +99,8 @@ export class Country {
         let country = Country.getCountryByTile(tile);
         console.log(country);
         if (country) {
-            country.tiles.splice(country.tiles.indexOf(tile), 1);
-            console.log(country.tiles);
+            country._tiles.splice(country._tiles.indexOf(tile), 1);
+            console.log(country._tiles);
         }
     }
 
@@ -89,6 +109,6 @@ export class Country {
     }
 
     static getCountryByArmy(army: Army): Country | null {
-        return [...Country._countries.values()].find(country => country.armies.indexOf(army) >= 0) ?? null;
+        return [...Country._countries.values()].find(country => country._armies.indexOf(army) >= 0) ?? null;
     }
 }

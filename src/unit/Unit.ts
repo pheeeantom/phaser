@@ -5,7 +5,7 @@ export abstract class Unit {
         
     }
 
-    diceRoll(diceRolls: string): number {
+    static diceRoll(diceRolls: string): number {
         let [numStr, diceStr] = diceRolls.split("d");
         let num = Number(numStr);
         let dice = Number(diceStr);

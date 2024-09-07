@@ -9,39 +9,41 @@ import { PlayScene } from "~/scenes/PlayScene";
 import { Scene } from "phaser";
 
 class Turn {
-    num: number;
-    country: string;
-    countries: string[];
+    private _num: number;
+    private _country: string;
+    private _countries: string[];
     constructor(countries: string[]) {
-        this.countries = countries;
-        this.country = countries[0];
-        this.num = 0;
+        this._countries = countries;
+        this._country = countries[0];
+        this._num = 0;
+    }
+
+    getCurrentTurn() {
+        return this._num + 1;
     }
 
     endTurn(planetScene: PlanetScene, playScene: PlayScene) {
-        let index = this.countries.indexOf(this.country);
-        if (index === this.countries.length - 1) {
-            this.country = this.countries[0];
-            this.num++;
+        let index = this._countries.indexOf(this._country);
+        if (index === this._countries.length - 1) {
+            this._country = this._countries[0];
+            this._num++;
         }
         else {
-            this.country = this.countries[index + 1];
+            this._country = this._countries[index + 1];
         }
-        Country.getCountryByName(this.country)!.tiles.forEach(tile => {
-            tile.tmpSpawnUnit(planetScene, Country.getCountryByName(this.country)!);
-        });
-        Country.getCountryByName(this.country)!.restoreCurrentMovementPoints();
+        Country.getCountryByName(this._country)!.tmpSpawnUnitAll(planetScene);
+        Country.getCountryByName(this._country)!.restoreCurrentMovementPoints();
         Game.getInstance().economic.mainPanel.setInfo(playScene);
     }
 
     getCurrentCountry() {
-        let country = Country.getCountryByName(Game.getInstance().turn.country);
+        let country = Country.getCountryByName(Game.getInstance().turn._country);
         if (!country) throw new Error('No current country');
         return country;
     }
 
     removeCountry(name: string) {
-        this.countries = this.countries.filter(country => country !== name);
+        this._countries = this._countries.filter(country => country !== name);
     }
 }
 
@@ -66,10 +68,11 @@ export class Game {
 
     loseCountry(country: Country, scene: Scene): void {
         console.log(country);
-        for (let i = 0; i < country.armies.length; i++) {
+        country.removeAllArmies();
+        /*for (let i = 0; i < country.armies.length; i++) {
             country.armies[i].remove();
             i--;
-        }
+        }*/
         this.turn.removeCountry(country.name);
         Country.removeCountry(country);
         if ([...Country.allCountries().values()].length === 1) {

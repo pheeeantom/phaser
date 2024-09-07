@@ -19,7 +19,7 @@ export class Tile {
     neighbors: Tile[];
     parent: Tile | undefined;
     improvement: Improvement | null;
-    label: Phaser.GameObjects.Text;
+    private _label: Phaser.GameObjects.Text;
     private _planet: Planet;
     constructor(x: number, y: number, terrainTypeId: number, movementCost: number, water: boolean, planet: Planet) {
         this.x = x; //x location of the grid point
@@ -57,23 +57,23 @@ export class Tile {
     };
 
     renderLabel(planetScene: PlanetScene, name: string, color: string) {
-      this.label?.destroy();
-      let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(this.x, this.y);
-      if (pixelX && pixelY) {
-        this.label =
-          planetScene.add.text(pixelX, pixelY, name,
-          {color: color, backgroundColor: '#ffffff'}).setDepth(100);
-      }
+      this._label?.destroy();
+      //let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(this.x, this.y);
+      //if (pixelX && pixelY) {
+      this._label =
+        planetScene.add.text(this.x*64, this.y*64, name,
+        {color: color, backgroundColor: '#ffffff'}).setDepth(100);
+      //}
     }
 
     tmpSpawnUnit(planetScene: PlanetScene, country: Country) {
       let newArmy = new LandArmy();
       newArmy.create(this.x, this.y, this._planet);
-      let curArmy = planetScene.planet.tiles.getArmyByXYAndCountry(this.x, this.y, country);
+      let curArmy = planetScene.planet.tiles.getArmyByXY(this.x, this.y);
       console.log(newArmy, curArmy);
       if (curArmy) {
           newArmy.addAllFromArmy(curArmy, planetScene, country.color);
-          curArmy.remove();
+          //curArmy.remove();
       }
       (country.addArmy(newArmy, planetScene) as LandArmy).addUnits([new Soldier()], planetScene, country.color);
     }

@@ -67,6 +67,7 @@ export class Planet {
         //newyork.occupy(Country.getCountryByName('usa')!, planetScene);
         let moscow = new City();
         moscow.place(7, 3, 10000, planetScene, 'moscow', Country.getCountryByName('russia')!);
+        console.log(Country.getCountryByName('russia'));
         //moscow.occupy(Country.getCountryByName('russia')!, planetScene);
         let beijing = new Village();
         beijing.place(7, 8, 1000, planetScene, 'beijing', Country.getCountryByName('china')!);
@@ -82,9 +83,12 @@ export class Planet {
             throw new Error('No current country');
         }
         else {
-            this.curArmy = this.tiles.getArmyByXYAndCountry(x, y, Game.getInstance().turn.getCurrentCountry());
-            //this.curArmy?.renderMovementRange();
-            this.curArmy?.menu.render(x, y, planetScene);
+            let tmp = this.tiles.getArmyByXY(x, y);
+            if (tmp) {
+                this.curArmy = Game.getInstance().turn.getCurrentCountry() === Country.getCountryByArmy(tmp) ? tmp : null;
+                //this.curArmy?.renderMovementRange();
+                this.curArmy?.menu.render(x, y, planetScene);
+            }
         }
     }
 

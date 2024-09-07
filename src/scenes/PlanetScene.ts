@@ -37,10 +37,10 @@ export class PlanetScene extends Scene{
     return {x: newX, y: newY};
   }
 
-  toSceneCoordsPixels(x: number, y: number): {x: number | null, y: number | null} {
+  /*toSceneCoordsPixels(x: number, y: number): {x: number | null, y: number | null} {
     let phaserTile = this.terrainPlanetLayer.tilemap.getTileAt(x, y);
     return phaserTile ? {x: phaserTile.pixelX, y: phaserTile.pixelY} : {x: null, y: null};
-  }
+  }*/
 
   init(data){
     this.planet = data.planet;
@@ -83,24 +83,23 @@ export class PlanetScene extends Scene{
     this.planet.tiles.generateTiles(this);
                                   this.planet.initTmp(this, Game.getInstance());
 
-    Game.getInstance().turn.getCurrentCountry()!.tiles.forEach(tile => {
-      tile.tmpSpawnUnit(this, Game.getInstance().turn.getCurrentCountry()!);
-    });
+    Game.getInstance().turn.getCurrentCountry().tmpSpawnUnitAll(this);
     Game.getInstance().economic.mainPanel.setInfo(this.playScene);
 
 
-    let prevCurArmy: LandArmy;
-    let movingArmy: LandArmy | null;
+    //let prevCurArmy: LandArmy;
+    //let movingArmy: LandArmy | null;
     let maxMP: number = 0;
     this.input.on("pointerup",  (pointer) => {
       if (this.planet.curArmy) {
         if (this.planet.activated !== "none") {
-          this.planet.curArmy.clearRange();
+          //this.planet.curArmy.clearRange();
           let {x: newX1, y: newY1} = this.toSceneCoords(pointer.x, pointer.y);
           //let newX1 = this.camera.camera
           if (!this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP).includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
             (this.planet.curArmy.getTile() === this.planet.tiles.getTileByXY(newX1, newY1))) {
             //this.planet.cancelMovingArmy(movingArmy, prevCurArmy, this);
+            this.planet.curArmy.clearRange();
             this.planet.activated = "none";
             this.planet.curArmy = null;
             return;
@@ -109,12 +108,13 @@ export class PlanetScene extends Scene{
           //let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
           //let improvement = this.planet.tiles.getImprovementByXY(newX1, newY1);
           if (this.planet.activated === "move one") {
-            movingArmy = this.planet.curArmy.pickOne(this);
-            this.planet.curArmy = movingArmy;
+            //movingArmy = this.planet.curArmy.pickOne(this);
+            //this.planet.curArmy = movingArmy;
+            this.planet.curArmy = this.planet.curArmy.pickOne(this);
           }
-          else if (this.planet.activated === "move all") {
-            movingArmy = null;
-          }
+          //else if (this.planet.activated === "move all") {
+          //  movingArmy = null;
+          //}
           this.planet.curArmy.move(pointer.x, pointer.y,
             this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP), this);
           this.planet.activated = "none";
@@ -135,7 +135,7 @@ export class PlanetScene extends Scene{
         else {
           maxMP = 0;
         }
-        prevCurArmy = this.planet.curArmy;
+        //prevCurArmy = this.planet.curArmy;
         /*if (this.planet.activated === "move one") {
           movingArmy = this.planet.curArmy.pickOne(this);
           this.planet.curArmy = movingArmy;
@@ -152,7 +152,7 @@ export class PlanetScene extends Scene{
           this.planet.curArmy = movingArmy;
         }*/
 
-        this.planet.curArmy.renderMovementRange(this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP));
+        if (this.planet.activated !== "none") this.planet.curArmy.renderMovementRange(this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP));
         console.log(this.planet.activated);
         if (this.planet.activated === "none") {
           //this.planet.curArmy.clearRange();

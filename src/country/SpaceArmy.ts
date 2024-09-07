@@ -3,6 +3,7 @@ import { Army } from "./Army";
 import { Scene } from "phaser";
 import { Space } from "~/space/Space";
 import { CreateableSpace } from "~/interfaces/Createable";
+import { Tile } from "~/planet/Tile";
 
 export class SpaceArmy extends Army implements CreateableSpace<SpaceArmy> {
     constructor() {
@@ -34,5 +35,9 @@ export class SpaceArmy extends Army implements CreateableSpace<SpaceArmy> {
 
     addAllFromArmy(army: Army, scene: Scene, color: string) {
 
+    }
+
+    pickOne(scene: Scene): SpaceArmy {
+        return new SpaceArmy();
     }
 }

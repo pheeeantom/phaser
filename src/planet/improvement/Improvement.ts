@@ -32,7 +32,7 @@ export abstract class Improvement {
         country.addTile(tile);
         tile.renderLabel(planetScene, this.name, country.color);
         console.log(prevCountry);
-        if (prevCountry.tiles.length === 0) {
+        if (prevCountry.hasNoTiles()) {
             Game.getInstance().loseCountry(prevCountry, planetScene);
         }
     }

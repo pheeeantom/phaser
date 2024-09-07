@@ -3,7 +3,7 @@ import { Army } from "./Army";
 import { PlanetUnit } from "~/unit/planet/PlanetUnit";
 import { Tile } from "~/planet/Tile";
 import { Country } from "./Country";
-import { Unit } from "~/unit/Unit";
+import { Unit } from "../unit/Unit";
 import { Scene } from "phaser";
 import { Tiles } from "../planet/Tiles";
 import { PlayScene } from "~/scenes/PlayScene";
@@ -48,7 +48,7 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         return target;
     }
 
-    override create(x: number, y: number, planet: Planet): LandArmy {
+    override create(x: number, y: number, planet: Planet): this {
         super.create(x, y);
         this._planet = planet;
         return this;
@@ -76,79 +76,79 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         this._units.forEach(unit => (unit as PlanetUnit).currentMovementPoints -= totalCost);
     }
 
-    private postMove(planetScene: PlanetScene, toArmy: LandArmy | null, improvement: Improvement | null, startTile: Tile, totalCost: number) {
-        console.log(10000000);
-        this.clearRange();
-        console.log(improvement);
-        if (toArmy) {
-            if (toArmy.getUnitsType() === this.getUnitsType() &&
-                Country.getCountryByArmy(toArmy) === Country.getCountryByArmy(this)) {
-                this.reduceCurrentMovementPoints(totalCost);
-                //this.updateMovementPoints();
-                this.addAllFromArmy(toArmy, planetScene, Country.getCountryByArmy(this)!.color);
-                toArmy.remove();
-                //console.log(Country.getCountryByArmy(this)!.armies);
-                return;
-            }
-            if (Country.getCountryByArmy(toArmy) !== Country.getCountryByArmy(this)) {
-                console.log(111);
-                this.meleeAttack(toArmy);
-                this.clearCurrentAllMovementPoints();
-                console.log(this);
-                if (this.getUnitsNumber()) {
-                    if (toArmy.getUnitsNumber()) {
-                        if (planetScene.planet.tiles.getArmyByXY(startTile.x, startTile.y)) {
-                            planetScene.planet.tiles.getArmyByXY(startTile.x, startTile.y)!.addAllFromArmy(this, planetScene, Country.getCountryByArmy(this)!.color);
-                            this.remove();
-                            return;
-                        }
-                        let {x: pixelX2, y: pixelY2} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(startTile.x, startTile.y);
-                        if (pixelX2 === null || pixelY2 === null) {
-                            throw new Error('Source position tile is null');
-                        }
-                        this._sprite.setPosition(pixelX2, pixelY2);
-                        this._x = startTile.x;
-                        this._y = startTile.y;
-                        console.log(this);
-                        let country = Country.getCountryByArmy(this);
-                        if (!country) throw new Error('Army is not in any country');
-                        this.renderLabel(planetScene, country.color);
-                        this.menu.clear();
-                        return;
-                    }
-                    //this.reduceCurrentMovementPoints(totalCost);
-                    //this.updateMovementPoints();
-                    console.log(this);
-                    let country = Country.getCountryByArmy(this);
-                    if (!country) throw new Error('Army is not in any country');
-                    this.renderLabel(planetScene, country.color);
-                    this.menu.clear();
-                    if (improvement) {
-                        let country = Game.getInstance().turn.getCurrentCountry();
-                        improvement.occupy(country, planetScene);
-                    }
-                }
-            }
-            return;
-        }
-        this.reduceCurrentMovementPoints(totalCost);
-        //this.updateMovementPoints();
+    protected takeTile(planetScene: PlanetScene, tile: Tile): void {
         console.log(this);
         let country = Country.getCountryByArmy(this);
         if (!country) throw new Error('Army is not in any country');
         this.renderLabel(planetScene, country.color);
         this.menu.clear();
-
+        let improvement = tile.improvement;
         if (improvement) {
             let country = Game.getInstance().turn.getCurrentCountry();
             improvement.occupy(country, planetScene);
         }
     }
 
+    protected retreat(planetScene: PlanetScene, startTile: Tile): void {
+        if (planetScene.planet.tiles.getArmyByXY(startTile.x, startTile.y)) {
+            planetScene.planet.tiles.getArmyByXY(startTile.x, startTile.y)!.addAllFromArmy(this, planetScene, Country.getCountryByArmy(this)!.color);
+            //this.remove();
+            return;
+        }
+        /*let {x: pixelX2, y: pixelY2} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(startTile.x, startTile.y);
+        if (pixelX2 === null || pixelY2 === null) {
+            throw new Error('Source position tile is null');
+        }*/
+        this._sprite.setPosition(startTile.x*64, startTile.y*64);
+        this._x = startTile.x;
+        this._y = startTile.y;
+        console.log(this);
+        let country = Country.getCountryByArmy(this);
+        if (!country) throw new Error('Army is not in any country');
+        this.renderLabel(planetScene, country.color);
+        this.menu.clear();
+    }
+
+    private postMove(planetScene: PlanetScene, toArmy: LandArmy | null, /*improvement: Improvement | null,*/ startTile: Tile, totalCost: number) {
+        console.log(10000000);
+        this.clearRange();
+        //console.log(improvement);
+        if (toArmy) {
+            if (toArmy.getUnitsType() === this.getUnitsType() &&
+                Country.getCountryByArmy(toArmy) === Country.getCountryByArmy(this)) {
+                this.reduceCurrentMovementPoints(totalCost);
+                //this.updateMovementPoints();
+                this.addAllFromArmy(toArmy, planetScene, Country.getCountryByArmy(this)!.color);
+                //toArmy.remove();
+                //console.log(Country.getCountryByArmy(this)!.armies);
+                return;
+            }
+            if (Country.getCountryByArmy(toArmy) !== Country.getCountryByArmy(this)) {
+                console.log(111);
+                this.meleeAttack(toArmy);
+                //this.clearCurrentAllMovementPoints();
+                console.log(this);
+                if (this.getUnitsNumber()) {
+                    if (toArmy.getUnitsNumber()) {
+                        this.retreat(planetScene, startTile);
+                        return;
+                    }
+                    //this.reduceCurrentMovementPoints(totalCost);
+                    //this.updateMovementPoints();
+                    this.takeTile(planetScene, this.getTile());
+                }
+            }
+            return;
+        }
+        this.reduceCurrentMovementPoints(totalCost);
+        //this.updateMovementPoints();
+        this.takeTile(planetScene, this.getTile());
+    }
+
     move(x: number, y: number, range: Tile[], planetScene: PlanetScene) {
         let {x: newX, y: newY} = (this._sprite.scene as PlanetScene).toSceneCoords(x, y);
         let toArmy = planetScene.planet.tiles.getArmyByXY(newX, newY);
-        let improvement = planetScene.planet.tiles.getImprovementByXY(newX, newY);
+        //let improvement = planetScene.planet.tiles.getImprovementByXY(newX, newY);
         console.log(newX, newY);
         if (!range.includes((this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY))) {
             this.clearRange();
@@ -174,7 +174,7 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 if (!tile) {
                     clearInterval(timerId);
                     console.log(totalCost);
-                    this.postMove(planetScene, toArmy, improvement, shortestPath[shortestPath.length - 2], totalCost);
+                    this.postMove(planetScene, toArmy, /*improvement,*/ shortestPath[shortestPath.length - 2], totalCost);
                     this.sortByCurrentMovementPoints();
                     return;
                 }
@@ -182,7 +182,7 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                     tile.x = 1000;
                     tile.y = 1000;
                 }*/
-                let {x: pixelX, y: pixelY} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(tile.x, tile.y);
+                /*let {x: pixelX, y: pixelY} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(tile.x, tile.y);
                 if (pixelX === null || pixelY === null) {
                     clearInterval(timerId);
                     let {x: pixelX2, y: pixelY2} = (this._sprite.scene as PlanetScene).toSceneCoordsPixels(shortestPath[shortestPath.length - 2].x, shortestPath[shortestPath.length - 2].y);
@@ -193,8 +193,8 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                     this._x = shortestPath[shortestPath.length - 2].x;
                     this._y = shortestPath[shortestPath.length - 2].y;
                     throw new Error('In-path position tile is null');
-                }
-                this._sprite.setPosition(pixelX, pixelY);
+                }*/
+                this._sprite.setPosition(tile.x*64, tile.y*64);
                 this._x = tile.x;
                 this._y = tile.y;
                 totalCost += tile.movementCost;
@@ -236,41 +236,75 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     }
 
     transferOneFromArmy(army: Army, scene: Scene, color: string) {
+        if (army.getUnitsNumber() === 1) {
+            this.addAllFromArmy(army, scene, color);
+            return;
+        }
         this.addUnits([(army as LandArmy)._units[0]], scene as PlanetScene, color);
         (army as LandArmy).removeUnits([this._units[0]], scene as PlanetScene, color);
     }
 
     addAllFromArmy(army: Army, scene: Scene, color: string) {
         this.addUnits((army as LandArmy)._units, scene as PlanetScene, color);
+        army.remove();
     }
 
     restoreCurrentMovementPoints() {
         this._units.forEach(unit => (unit as PlanetUnit).restoreCurrentMovementPoints());
     }
 
-    meleeAttack(army: Army) {
+    protected fight(att: string, def: string): [boolean, boolean] {
+        console.log(att + ':' + def);
+        let attPoints = Unit.diceRoll(att);
+        let defPoints = Unit.diceRoll(def);
+        let result: [boolean, boolean] = [false, false];
+        if (attPoints > defPoints) {
+            result[1] = true;
+        }
+        else if (attPoints < defPoints) {
+            result[0] = true;
+        }
+        console.log(result);
+        return result;
+    }
+
+    protected fightMany(num: number, att: string, def: string): [number, number] {
+        let result: [number, number] = [0, 0];
+        if (att.startsWith('0') || def.startsWith('0')) {
+            return [0, 0];
+        }
+        for (let i = 0; i < num; i++) {
+            let tmp = this.fight(att, def).map(death => +death) as [number, number];
+            result[0] += tmp[0];
+            result[1] += tmp[1];
+        }
+        return result;
+    }
+
+    protected fightAll(army: LandArmy): [number, number] {
         let thisNumber = this.getUnitsNumber();
         let armyNumber = army.getUnitsNumber();
 
-        let bigArmy;
-        let smallArmy;
-        let bigUnits;
-        let smallUnits;
-        let bigNumber;
-        let smallNumber;
+        //let bigArmy: LandArmy;
+        //let smallArmy: LandArmy;
+        //let bigUnits: Unit[];
+        //let smallUnits: Unit[];
+        let bigNumber: number;
+        let smallNumber: number;
+        let attackerIsBig = thisNumber >= armyNumber;
         if (thisNumber >= armyNumber) {
-            bigArmy = this;
-            smallArmy = army;
-            bigUnits = this._units;
-            smallUnits = (army as LandArmy)._units;
+            //bigArmy = this;
+            //smallArmy = army as LandArmy;
+            //bigUnits = this._units;
+            //smallUnits = (army as LandArmy)._units;
             bigNumber = thisNumber;
             smallNumber = armyNumber;
         }
         else {
-            bigArmy = army;
-            smallArmy = this;
-            bigUnits = (army as LandArmy)._units;
-            smallUnits = this._units;
+            //bigArmy = army as LandArmy;
+            //smallArmy = this;
+            //bigUnits = (army as LandArmy)._units;
+            //smallUnits = this._units;
             bigNumber = armyNumber;
             smallNumber = thisNumber;
         }
@@ -283,13 +317,51 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
             extra = extra - smallNumber;
             bonus++;
         }
-        let diceRollWithBonusArr = bigUnits[0].meleeAttackDice.split('d');
+        let diceRollWithBonusArr = (attackerIsBig ? this : army)._units[0].meleeAttackDice.split('d');
         let diceRollWithBonus = (Number(diceRollWithBonusArr[0]) * bonus) + 'd' + diceRollWithBonusArr[1];
         let diceRollWithBonusExtra = (Number(diceRollWithBonusArr[0]) * (bonus - 1)) + 'd' + diceRollWithBonusArr[1];
-        let attackerDeaths = 0;
-        let defenderDeaths = 0;
+        //let attackerDeaths = 0;
+        //let defenderDeaths = 0;
         extra = -extra;
-        for (let i = 0; i < smallNumber - extra; i++) {
+        let result1: [number, number];
+        let result2: [number, number];
+        if (attackerIsBig) {
+            result1 = this.fightMany(smallNumber - extra, diceRollWithBonus, army._units[0].meleeAttackDice);
+            result2 = this.fightMany(-(extra - smallNumber), diceRollWithBonusExtra, army._units[0].meleeAttackDice);
+        }
+        else {
+            result1 = this.fightMany(smallNumber - extra, this._units[0].meleeAttackDice, diceRollWithBonus);
+            result2 = this.fightMany(-(extra - smallNumber), this._units[0].meleeAttackDice, diceRollWithBonusExtra);
+        }
+        /*for (let i = 0; i < smallNumber - extra; i++) {
+            let tmp = this.fight(att, def).map(death => +death) as [number, number];
+            result[0] += tmp[0];
+            result[1] += tmp[1];
+        }
+        for (let i = smallNumber - extra; i < smallNumber; i++) {
+            let tmp = this.fight(att, def).map(death => +death) as [number, number];
+            result[0] += tmp[0];
+            result[1] += tmp[1];
+        }*/
+        return [result1[0] + result2[0], result1[1] + result2[1]];
+    }
+
+    kill(amount: number) {
+        if (amount) {
+            if (amount >= this.getUnitsNumber()) {
+                //(smallArmy as LandArmy).removeUnits(smallArmy._units, (smallArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(smallArmy)!.color);
+                this.clearUnits();
+                this.remove();
+            }
+            else {
+                this.removeUnits(this._units.slice(0, amount), this._sprite.scene, Country.getCountryByArmy(this)!.color);
+            }
+        }
+    }
+
+    meleeAttack(army: Army) {
+        let deaths = this.fightAll(army as LandArmy);
+        /*for (let i = 0; i < smallNumber - extra; i++) {
             console.log(diceRollWithBonus + ':' + smallUnits[0].meleeAttackDice);
             let att = bigUnits[0].diceRoll(diceRollWithBonus);
             let def = smallUnits[0].diceRoll(smallUnits[0].meleeAttackDice);
@@ -310,27 +382,30 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
             else if (att < def) {
                 attackerDeaths++;
             }
-        }
-        console.log(attackerDeaths, defenderDeaths);
-        if (attackerDeaths) {
-            if (attackerDeaths >= bigNumber) {
-                (bigArmy as LandArmy).removeUnits(bigArmy._units, (bigArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(bigArmy)!.color);
-                bigArmy.remove();
+        }*/
+        console.log(deaths);
+        /*if (deaths[0]) {
+            if (deaths[0] >= this.getUnitsNumber()) {
+                //(bigArmy as LandArmy).removeUnits(bigArmy._units, (bigArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(bigArmy)!.color);
+                this.remove();
             }
             else {
                 //console.log(bigArmy);
-                (bigArmy as LandArmy).removeUnits(bigArmy._units.slice(0, attackerDeaths), (bigArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(bigArmy)!.color);
+                this.removeUnits(this._units.slice(0, deaths[0]), this._sprite.scene, Country.getCountryByArmy(this)!.color);
             }
         }
-        if (defenderDeaths) {
-            if (defenderDeaths >= smallNumber) {
-                (smallArmy as LandArmy).removeUnits(smallArmy._units, (smallArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(smallArmy)!.color);
-                smallArmy.remove();
+        if (deaths[1]) {
+            if (deaths[1] >= army.getUnitsNumber()) {
+                //(smallArmy as LandArmy).removeUnits(smallArmy._units, (smallArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(smallArmy)!.color);
+                army.remove();
             }
             else {
-                (smallArmy as LandArmy).removeUnits(smallArmy._units.slice(0, defenderDeaths), (bigArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(smallArmy)!.color);
+                (army as LandArmy).removeUnits((army as LandArmy)._units.slice(0, deaths[1]), (army as LandArmy)._sprite.scene, Country.getCountryByArmy(army)!.color);
             }
-        }
+        }*/
+        this.kill(deaths[0]);
+        (army as LandArmy).kill(deaths[1]);
+        this.clearCurrentAllMovementPoints();
     }
 
     pickOne(scene: Scene): LandArmy {
