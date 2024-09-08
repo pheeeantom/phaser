@@ -8,5 +8,6 @@ export class Soldier extends PlanetUnit {
         this.currentMovementPoints = this.movementPoints;
         this.name = "soldier";
         this.meleeAttackDice = "1d6";
+        this.maxNum = 8;
     }
 }

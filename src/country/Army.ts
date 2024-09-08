@@ -86,7 +86,7 @@ export abstract class Army implements Createable<Army> {
     protected _label: Phaser.GameObjects.Text;
     menu: ArmyActions;
     constructor() {
-
+        
     }
 
     remove(): void {
@@ -141,7 +141,7 @@ export abstract class Army implements Createable<Army> {
     }
 
     getUnitsType() {
-        return this._units[0].name;
+        return this._units.length ? this._units[0].name : '';
     }
 
     getUnitsNumber() {

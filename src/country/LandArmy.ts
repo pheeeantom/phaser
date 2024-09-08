@@ -25,7 +25,15 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         return this._planet.tiles.getTileByXY(this._x, this._y);
     }
 
+    getUnitsMaxNum(): number {
+        const firstUnit = (this._units[0] as PlanetUnit);
+        return firstUnit ? firstUnit.maxNum : Number.POSITIVE_INFINITY;
+    }
+
     override addUnits(target: Unit[], scene: Scene, color: string): Unit[] {
+        /*if (this.getUnitsNumber() + target.length > this.getUnitsMaxNum()) {
+            return [];
+        }*/
         super.addUnits(target);
         this.sortByCurrentMovementPoints();
         //this.updateMovementPoints();
@@ -148,6 +156,13 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     move(x: number, y: number, range: Tile[], planetScene: PlanetScene, maxMP: number) {
         let {x: newX, y: newY} = (this._sprite.scene as PlanetScene).toSceneCoords(x, y);
         let toArmy = planetScene.planet.tiles.getArmyByXY(newX, newY);
+
+        if (toArmy &&
+            this.getUnitsNumber() + (toArmy as LandArmy).getUnitsNumber() > this.getUnitsMaxNum()) {
+            this.clearRange();
+            return;
+        }
+
         //let improvement = planetScene.planet.tiles.getImprovementByXY(newX, newY);
         console.log(newX, newY);
         if (!range.includes((this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY))) {
@@ -237,6 +252,9 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     }
 
     transferOneFromArmy(army: Army, scene: Scene, color: string) {
+        /*if (this.getUnitsNumber() + 1 > this.getUnitsMaxNum()) {
+            return;
+        }*/
         if (army.getUnitsNumber() === 1) {
             this.addAllFromArmy(army, scene, color);
             return;
@@ -246,6 +264,10 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     }
 
     addAllFromArmy(army: Army, scene: Scene, color: string) {
+        /*if (this.getUnitsNumber() + army.getUnitsNumber() > this.getUnitsMaxNum()) {
+            return;
+        }*/
+        console.log(this, army);
         this.addUnits((army as LandArmy)._units, scene as PlanetScene, color);
         army.remove();
     }

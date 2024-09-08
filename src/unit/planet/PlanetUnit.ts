@@ -6,6 +6,7 @@ import { Tile } from "~/planet/Tile";
 export abstract class PlanetUnit extends Unit {
     movementPoints: number;
     currentMovementPoints: number;
+    maxNum: number;
     constructor() {
         super();
     }
