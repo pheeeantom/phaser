@@ -5,6 +5,7 @@ import { LandArmy } from "../country/LandArmy";
 import { Country } from "../country/Country";
 import { Soldier } from "../unit/planet/martial/land/Soldier";
 import { Planet } from "./Planet";
+import { Game } from "../game/Game";
 
 //constructor function to create all the grid points as objects containind the data for the points
 export class Tile {
@@ -80,4 +81,20 @@ export class Tile {
       }
       (country.addArmy(newArmy, planetScene) as LandArmy).addUnits([new Soldier()], planetScene, country.color);
     }
+
+    occupy(country: Country, planetScene: PlanetScene) {
+      let tile = planetScene.planet.tiles.getTileByXY(this.x, this.y);
+      let prevCountry = Country.getCountryByTile(tile);
+      if (!prevCountry) return;
+      //console.log(tile);
+      //Country.removeTileFromCountry(tile);
+      prevCountry.removeTile(tile);
+      country.addTile(tile, planetScene);
+      let improvement = this._planet.tiles.getImprovementByXY(this.x, this.y);
+      if (improvement) tile.renderLabel(planetScene, improvement.name, country.color);
+      console.log(prevCountry);
+      if (prevCountry.hasNoCities()) {
+          Game.getInstance().loseCountry(prevCountry, planetScene);
+      }
+  }
   }

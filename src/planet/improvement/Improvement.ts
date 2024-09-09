@@ -21,19 +21,6 @@ export abstract class Improvement {
         planetScene.terrainPlanetLayer.putTileAt(this.terrainTypeId, this._x, this._y);
         tile.improvement = this;
         tile.renderLabel(planetScene, this.name, country.color);
-        country.addTile(tile);
-    }
-
-    occupy(country: Country, planetScene: PlanetScene) {
-        let tile = planetScene.planet.tiles.getTileByXY(this._x, this._y);
-        let prevCountry = Country.getCountryByTile(tile)!;
-        //console.log(tile);
-        Country.removeTileFromCountry(tile);
-        country.addTile(tile);
-        tile.renderLabel(planetScene, this.name, country.color);
-        console.log(prevCountry);
-        if (prevCountry.hasNoTiles()) {
-            Game.getInstance().loseCountry(prevCountry, planetScene);
-        }
+        //country.addTile(tile, planetScene);
     }
 }

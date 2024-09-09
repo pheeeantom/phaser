@@ -13,7 +13,7 @@ import { Planet } from "~/planet/Planet";
 import { CreateablePlanet } from "../interfaces/Createable";
 
 export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
-    protected _range: Phaser.GameObjects.Rectangle[];
+    protected _range: Phaser.GameObjects.Ellipse[];
     protected _planet: Planet;
     //movementPoints: number;
     constructor() {
@@ -90,11 +90,13 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         if (!country) throw new Error('Army is not in any country');
         this.renderLabel(planetScene, country.color);
         this.menu.clear();
-        let improvement = tile.improvement;
+        /*let improvement = tile.improvement;
         if (improvement) {
             let country = Game.getInstance().turn.getCurrentCountry();
             improvement.occupy(country, planetScene);
-        }
+        }*/
+        let countryNew = Game.getInstance().turn.getCurrentCountry();
+        tile.occupy(countryNew, planetScene);
     }
 
     protected retreat(planetScene: PlanetScene, startTile: Tile): void {
@@ -157,7 +159,7 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         let {x: newX, y: newY} = (this._sprite.scene as PlanetScene).toSceneCoords(x, y);
         let toArmy = planetScene.planet.tiles.getArmyByXY(newX, newY);
 
-        if (toArmy &&
+        if (toArmy && Country.getCountryByArmy(toArmy) === Country.getCountryByArmy(this) &&
             this.getUnitsNumber() + (toArmy as LandArmy).getUnitsNumber() > this.getUnitsMaxNum()) {
             this.clearRange();
             return;
@@ -214,6 +216,10 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 this._x = tile.x;
                 this._y = tile.y;
                 totalCost += tile.movementCost;
+                if (tile !== shortestPath[shortestPath.length - 1]) {
+                    let countryNew = Game.getInstance().turn.getCurrentCountry();
+                    tile.occupy(countryNew, planetScene);
+                }
             },
             250, next);
     }
@@ -241,7 +247,7 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 this.clearRange();
                 throw new Error('Error in range building');
             }*/
-            this._range.push(this._sprite.scene.add.rectangle(tile.x*64, tile.y*64, 64, 64, 0xff0000, 0.2).setOrigin(0,0))
+            this._range.push(this._sprite.scene.add.ellipse(tile.x*64 + 26, tile.y*64 + 26, 12, 12, 0x00000, 1).setOrigin(0,0).setDepth(1000));
         });
     }
 

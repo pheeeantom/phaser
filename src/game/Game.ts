@@ -75,6 +75,7 @@ export class Game {
         }*/
         this.turn.removeCountry(country.name);
         Country.removeCountry(country);
+        country.giveAllTilesToAnotherCountry(Game.getInstance().turn.getCurrentCountry(), scene);
         if ([...Country.allCountries().values()].length === 1) {
             scene.game.scene.scenes.forEach((scene) => {
                 const key = scene.scene.key; // This is not a typo, the scene here is more like a "game" object, so the scene actually is under the "scene" property.
