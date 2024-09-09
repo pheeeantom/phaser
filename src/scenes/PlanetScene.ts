@@ -10,6 +10,8 @@ import { Tiles } from "../planet/Tiles";
 import { Improvement } from "~/planet/improvement/Improvement";
 import { Economic } from "../game/Economic";
 import { PlayScene } from "./PlayScene";
+import { Soldier } from "../unit/planet/martial/land/Soldier";
+import { Village } from "../planet/improvement/Village";
 
 export class PlanetScene extends Scene{
 
@@ -83,7 +85,8 @@ export class PlanetScene extends Scene{
     this.planet.tiles.generateTiles(this);
                                   this.planet.initTmp(this, Game.getInstance());
 
-    Game.getInstance().turn.getCurrentCountry().tmpSpawnUnitAll(this);
+    //Game.getInstance().turn.getCurrentCountry().tmpSpawnUnitAll(this);
+    Game.getInstance().turn.getCurrentCountry().income();
     Game.getInstance().economic.mainPanel.setInfo(this.playScene);
 
 
@@ -91,6 +94,82 @@ export class PlanetScene extends Scene{
     //let movingArmy: LandArmy | null;
     let maxMP: number = 0;
     this.input.on("pointerup",  (pointer) => {
+      if (Game.getInstance().economic.menuClicked) {
+        Game.getInstance().economic.menuClicked = false;
+        return;
+      }
+      console.log(Game.getInstance().economic.activated);
+      if (Game.getInstance().economic.activated === "soldier") {
+        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
+        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+        if (curArmy && (curArmy.getUnitsType() !== "soldier" || curArmy.getUnitsNumber() + 1 > curArmy.getUnitsMaxNum() ||
+          Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry())) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (Game.getInstance().turn.getCurrentCountry().money < Soldier.cost) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        tileOn.spawnUnit(this, Game.getInstance().turn.getCurrentCountry());
+        Game.getInstance().turn.getCurrentCountry().money -= Soldier.cost;
+        Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+        Game.getInstance().economic.activated = "none";
+        return;
+      }
+      if (Game.getInstance().economic.activated === "village") {
+        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
+        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+        if (Game.getInstance().turn.getCurrentCountry().money < Village.cost) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (tileOn.improvement) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (tileOn.terrainTypeId !== 2 && tileOn.terrainTypeId !== 4) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        new Village().place(newX, newY, 1000, this, 'village', Game.getInstance().turn.getCurrentCountry());
+        Game.getInstance().turn.getCurrentCountry().money -= Village.cost;
+        Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+        Game.getInstance().economic.activated = "none";
+        return;
+      }
+      if (Game.getInstance().economic.activated === "ter") {
+        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
+        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+        if (curArmy && Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (Game.getInstance().turn.getCurrentCountry().money < 3) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (!tileOn.neighbors.find(neighbor => Country.getCountryByTile(neighbor) === Game.getInstance().turn.getCurrentCountry())) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        Game.getInstance().turn.getCurrentCountry().addTile(tileOn, this);
+        Game.getInstance().turn.getCurrentCountry().money -= 3;
+        Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+        Game.getInstance().economic.activated = "none";
+        return;
+      }
       if (this.planet.curArmy) {
         if (this.planet.activated !== "none") {
           //this.planet.curArmy.clearRange();

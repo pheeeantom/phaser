@@ -67,7 +67,7 @@ export class Tile {
       //}
     }
 
-    tmpSpawnUnit(planetScene: PlanetScene, country: Country) {
+    spawnUnit(planetScene: PlanetScene, country: Country) {
       let curArmy = planetScene.planet.tiles.getArmyByXY(this.x, this.y);
       if (curArmy && curArmy.getUnitsNumber() + 1 > curArmy.getUnitsMaxNum()) {
         return;

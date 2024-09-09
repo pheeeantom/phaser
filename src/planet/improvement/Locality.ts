@@ -2,6 +2,7 @@ import { Improvement } from "./Improvement";
 import { PlanetScene } from "~/scenes/PlanetScene";
 import { LandImprovement } from "./LandImprovement";
 import { Country } from "../../country/Country";
+import { Profitable } from "~/interfaces/Profitable";
 
 export abstract class Locality extends LandImprovement {
     population: number;

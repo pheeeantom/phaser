@@ -8,6 +8,7 @@ export abstract class Improvement {
     protected _y: number;
     terrainTypeId: number;
     name: string;
+    static cost: number;
     constructor() {
         
     }

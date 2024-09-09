@@ -7,6 +7,7 @@ export abstract class PlanetUnit extends Unit {
     movementPoints: number;
     currentMovementPoints: number;
     maxNum: number;
+    static cost: number;
     constructor() {
         super();
     }

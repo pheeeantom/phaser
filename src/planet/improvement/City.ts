@@ -5,4 +5,8 @@ export class City extends Locality {
         super();
         this.terrainTypeId = 8;
     }
+
+    income(): number {
+        return 5;
+    }
 }

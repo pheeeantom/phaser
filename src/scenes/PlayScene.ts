@@ -19,6 +19,24 @@ export class PlayScene extends Scene {
       if (action === "end turn") {
         Game.getInstance().turn.endTurn(planetScenePlugin.get("planet") as PlanetScene, this);
       }
+      else if (action === "build unit") {
+        Game.getInstance().economic.mainPanel.toggleBuildUnit(this);
+      }
+      else if (action === "build house") {
+        Game.getInstance().economic.mainPanel.toggleBuildHouse(this);
+      }
+      else if (action === "soldier") {
+        Game.getInstance().economic.activated = "soldier";
+      }
+      else if (action === "village") {
+        Game.getInstance().economic.activated = "village";
+      }
+      else if (action === "buy ter") {
+        Game.getInstance().economic.activated = "ter";
+      }
+      if (action !== "none") {
+        Game.getInstance().economic.menuClicked = true;
+      }
     });
   }
 }

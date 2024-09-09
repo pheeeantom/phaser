@@ -7,20 +7,23 @@ import { PlanetScene } from "~/scenes/PlanetScene";
 import { Scene } from "phaser";
 import { SpaceArmy } from "./SpaceArmy";
 import { Locality } from "../planet/improvement/Locality";
+import { isProfitable, Profitable } from "../interfaces/Profitable";
 
 export class Country {
     name: string;
     color: string;
+    money: number;
     private _armies: Army[];
     private _tiles: Tile[];
     private static _countries: Map<string, Country> = new Map<string, Country>();
     private _territory: Phaser.GameObjects.Rectangle[];
     constructor(name: string, color: string) {
         this.name = name;
+        this.color = color;
+        this.money = 0;
         this._armies = [];
         this._tiles = [];
         this._territory = [];
-        this.color = color;
         Country._countries.set(name, this);
     }
 
@@ -96,11 +99,17 @@ export class Country {
         return this._tiles.filter(tile => tile.improvement instanceof Locality).length === 0;
     }
 
-    tmpSpawnUnitAll(planetScene: PlanetScene) {
+    income(): void {
+        this._tiles.filter(tile => tile.improvement ? isProfitable(tile.improvement) : false).
+            map(tile => tile.improvement).
+            forEach(incomeable => this.money += ((incomeable as unknown) as Profitable).income());
+    }
+
+    /*tmpSpawnUnitAll(planetScene: PlanetScene) {
         this._tiles.filter(tile => tile.improvement instanceof Locality).forEach(tile => {
             tile.tmpSpawnUnit(planetScene, this);
         });
-    }
+    }*/
 
     static removeArmy(army: Army) {
         Country.getCountryByArmy(army)!._armies.splice(Country.getCountryByArmy(army)!._armies.indexOf(army), 1);

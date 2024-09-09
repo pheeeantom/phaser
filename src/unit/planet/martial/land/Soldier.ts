@@ -2,6 +2,7 @@ import { PlanetScene } from "~/scenes/PlanetScene";
 import { PlanetUnit } from "../../PlanetUnit";
 
 export class Soldier extends PlanetUnit {
+    static cost: number = 5;
     constructor() {
         super();
         this.movementPoints = 5;
