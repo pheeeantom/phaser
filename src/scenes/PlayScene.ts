@@ -14,6 +14,9 @@ export class PlayScene extends Scene {
     new Game(new Economic(this));
   	let planetScenePlugin = this.scene.launch("planet", { 'planet': new Planet('earth'), 'playscene': this });
     this.scene.bringToTop();
+    this.input.on("pointerdown",  (pointer) => {
+      Game.getInstance().economic.mainPanel.activate(pointer.x, pointer.y);
+    });
     this.input.on("pointerup",  (pointer) => {
       let action = Game.getInstance().economic.mainPanel.click(pointer.x, pointer.y);
       if (action === "end turn") {
@@ -52,6 +55,7 @@ export class PlayScene extends Scene {
       if (action !== "none") {
         Game.getInstance().economic.menuClicked = true;
       }
+      Game.getInstance().economic.mainPanel.setInfo(this);
     });
   }
 }

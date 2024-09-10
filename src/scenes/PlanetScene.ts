@@ -143,7 +143,10 @@ export class PlanetScene extends Scene{
         return;
       }
       if (Game.getInstance().economic.activated === "village" || Game.getInstance().economic.activated === "farm" ||
-        Game.getInstance().economic.activated === "mine") {
+        Game.getInstance().economic.activated === "mine" || Game.getInstance().economic.activated === "upgrade") {
+        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
+        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
         let building;
         if (Game.getInstance().economic.activated === "village") {
           building = Village;
@@ -154,9 +157,19 @@ export class PlanetScene extends Scene{
         else if (Game.getInstance().economic.activated === "mine") {
           building = Mine;
         }
-        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
-        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
-        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+        else if (Game.getInstance().economic.activated === "upgrade") {
+          if (tileOn.improvement instanceof Village) {
+            building = Town;
+          }
+          else if (tileOn.improvement instanceof Town) {
+            building = City;
+          }
+          else {
+            Game.getInstance().economic.mainPanel.setMessage("You can upgrade only a village or a town...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+        }
         if (Game.getInstance().turn.getCurrentCountry().money < building.cost) {
           Game.getInstance().economic.mainPanel.setMessage("Not enough money (" + Game.getInstance().economic.activated + " price is " + building.cost + "$)...");
           Game.getInstance().economic.activated = "none";
@@ -167,7 +180,7 @@ export class PlanetScene extends Scene{
           Game.getInstance().economic.activated = "none";
           return;
         }
-        if (tileOn.improvement) {
+        if (tileOn.improvement && Game.getInstance().economic.activated !== "upgrade") {
           Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only where no other buildings...");
           Game.getInstance().economic.activated = "none";
           return;
@@ -184,7 +197,7 @@ export class PlanetScene extends Scene{
         Game.getInstance().economic.activated = "none";
         return;
       }
-      if (Game.getInstance().economic.activated === "upgrade") {
+      /*if (Game.getInstance().economic.activated === "upgrade") {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
@@ -222,7 +235,7 @@ export class PlanetScene extends Scene{
         Game.getInstance().economic.mainPanel.setMessage("OK");
         Game.getInstance().economic.activated = "none";
         return;
-      }
+      }*/
       if (Game.getInstance().economic.activated === "ter") {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
