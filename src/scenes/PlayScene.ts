@@ -31,6 +31,9 @@ export class PlayScene extends Scene {
       else if (action === "village") {
         Game.getInstance().economic.activated = "village";
       }
+      else if (action === "upgrade") {
+        Game.getInstance().economic.activated = "upgrade";
+      }
       else if (action === "buy ter") {
         Game.getInstance().economic.activated = "ter";
       }

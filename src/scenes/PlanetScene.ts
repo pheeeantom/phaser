@@ -12,6 +12,7 @@ import { Economic } from "../game/Economic";
 import { PlayScene } from "./PlayScene";
 import { Soldier } from "../unit/planet/martial/land/Soldier";
 import { Village } from "../planet/improvement/Village";
+import { City } from "../planet/improvement/City";
 
 export class PlanetScene extends Scene{
 
@@ -144,6 +145,30 @@ export class PlanetScene extends Scene{
         }
         new Village().place(newX, newY, 1000, this, 'village', Game.getInstance().turn.getCurrentCountry());
         Game.getInstance().turn.getCurrentCountry().money -= Village.cost;
+        Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+        Game.getInstance().economic.activated = "none";
+        return;
+      }
+      if (Game.getInstance().economic.activated === "upgrade") {
+        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
+        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+        let isVillage = tileOn.improvement instanceof Village;
+        let isCity = tileOn.improvement instanceof City;
+        if (!isVillage) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (isVillage && Game.getInstance().turn.getCurrentCountry().money < City.cost) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        new City().place(newX, newY, 10000, this, 'city', Game.getInstance().turn.getCurrentCountry());
+        Game.getInstance().turn.getCurrentCountry().money -= City.cost;
         Game.getInstance().economic.mainPanel.setInfo(this.playScene);
         Game.getInstance().economic.activated = "none";
         return;

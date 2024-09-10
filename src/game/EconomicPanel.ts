@@ -33,7 +33,7 @@ export class EconomicPanel {
             this._subBuildHouse = null;
             return;
         }
-        this._subBuildHouse = scene.add.text(this._buildUnit.x + this._buildUnit.width, this._mainMenu.y + this._mainMenu.height + this._buildHouse.height, "Village", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
+        this._subBuildHouse = scene.add.text(this._buildUnit.x + this._buildUnit.width, this._mainMenu.y + this._mainMenu.height + this._buildHouse.height, "Village\nUpgrade", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
     }
 
     click(x: number, y: number) {
@@ -62,8 +62,14 @@ export class EconomicPanel {
         }
         if (this._subBuildHouse) {
             if (x > this._subBuildHouse.x && x < this._subBuildHouse.x + this._subBuildHouse.width &&
-                y > this._subBuildHouse.y && y < this._subBuildHouse.y + this._subBuildHouse.height) {
+                y > this._subBuildHouse.y + 0 * this._subBuildHouse.height / 2 &&
+                y < this._subBuildHouse.y + 1 * this._subBuildHouse.height / 2) {
                 return "village";
+            }
+            if (x > this._subBuildHouse.x && x < this._subBuildHouse.x + this._subBuildHouse.width &&
+                y > this._subBuildHouse.y + 1 * this._subBuildHouse.height / 2 &&
+                y < this._subBuildHouse.y + 2 * this._subBuildHouse.height / 2) {
+                return "upgrade";
             }
         }
         if (x > this._buyTerritory.x && x < this._buyTerritory.x + this._buyTerritory.width &&
