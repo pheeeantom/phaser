@@ -6,6 +6,7 @@ import { Profitable } from "~/interfaces/Profitable";
 
 export abstract class Locality extends LandImprovement {
     population: number;
+    static acceptableTerrains: number[] = [2, 4];
     constructor() {
         super(); 
     }

@@ -356,11 +356,11 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         let result2: [number, number];
         if (attackerIsBig) {
             result1 = this.fightMany(smallNumber - extra, diceRollWithBonus, army._units[0].meleeAttackDice);
-            result2 = this.fightMany(-(extra - smallNumber), diceRollWithBonusExtra, army._units[0].meleeAttackDice);
+            result2 = (this.getUnitsNumber() !== 1 && army.getUnitsNumber() !== 1) ? this.fightMany(-(extra - smallNumber), diceRollWithBonusExtra, army._units[0].meleeAttackDice) : [0, 0];
         }
         else {
             result1 = this.fightMany(smallNumber - extra, this._units[0].meleeAttackDice, diceRollWithBonus);
-            result2 = this.fightMany(-(extra - smallNumber), this._units[0].meleeAttackDice, diceRollWithBonusExtra);
+            result2 = (this.getUnitsNumber() !== 1 && army.getUnitsNumber() !== 1) ? this.fightMany(-(extra - smallNumber), this._units[0].meleeAttackDice, diceRollWithBonusExtra) : [0, 0];
         }
         /*for (let i = 0; i < smallNumber - extra; i++) {
             let tmp = this.fight(att, def).map(death => +death) as [number, number];
@@ -432,6 +432,8 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 (army as LandArmy).removeUnits((army as LandArmy)._units.slice(0, deaths[1]), (army as LandArmy)._sprite.scene, Country.getCountryByArmy(army)!.color);
             }
         }*/
+        Game.getInstance().economic.mainPanel.setMessage("Enemy killed: " + deaths[0] + " " + this.getUnitsType() +
+            ", you killed: " + deaths[1] + " " + army.getUnitsType());
         this.kill(deaths[0]);
         (army as LandArmy).kill(deaths[1]);
         this.clearCurrentAllMovementPoints();

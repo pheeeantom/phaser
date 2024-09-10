@@ -10,12 +10,14 @@ export class EconomicPanel {
     private _mainMenu: Phaser.GameObjects.Text;
     private _buyTerritory: Phaser.GameObjects.Text;
     private _info: Phaser.GameObjects.Text;
+    private _message: Phaser.GameObjects.Text;
     constructor(scene: Scene) {
         this._buildUnit = scene.add.text(0, 0, "Build unit⯆", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
         this._buildHouse = scene.add.text(0, 0, "Build house⯆", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
         this._mainMenu = scene.add.text(0, 0, /*"Build⯆"*/"End turn...", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
         this._buyTerritory = scene.add.text(0, 0, "Buy ter", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
         //this.mainMenu.setScrollFactor(0, 0);
+        this._message = scene.add.text(0, 0, "Buy ter", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
     }
 
     toggleBuildUnit(scene: Scene) {
@@ -33,7 +35,7 @@ export class EconomicPanel {
             this._subBuildHouse = null;
             return;
         }
-        this._subBuildHouse = scene.add.text(this._buildUnit.x + this._buildUnit.width, this._mainMenu.y + this._mainMenu.height + this._buildHouse.height, "Village\nUpgrade", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
+        this._subBuildHouse = scene.add.text(this._buildUnit.x + this._buildUnit.width, this._mainMenu.y + this._mainMenu.height + this._buildHouse.height, "Upgrade\nVillage\nFarm\nMine", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
     }
 
     click(x: number, y: number) {
@@ -62,14 +64,24 @@ export class EconomicPanel {
         }
         if (this._subBuildHouse) {
             if (x > this._subBuildHouse.x && x < this._subBuildHouse.x + this._subBuildHouse.width &&
-                y > this._subBuildHouse.y + 0 * this._subBuildHouse.height / 2 &&
-                y < this._subBuildHouse.y + 1 * this._subBuildHouse.height / 2) {
+                y > this._subBuildHouse.y + 0 * this._subBuildHouse.height / 4 &&
+                y < this._subBuildHouse.y + 1 * this._subBuildHouse.height / 4) {
+                return "upgrade";
+            }
+            if (x > this._subBuildHouse.x && x < this._subBuildHouse.x + this._subBuildHouse.width &&
+                y > this._subBuildHouse.y + 1 * this._subBuildHouse.height / 4 &&
+                y < this._subBuildHouse.y + 2 * this._subBuildHouse.height / 4) {
                 return "village";
             }
             if (x > this._subBuildHouse.x && x < this._subBuildHouse.x + this._subBuildHouse.width &&
-                y > this._subBuildHouse.y + 1 * this._subBuildHouse.height / 2 &&
-                y < this._subBuildHouse.y + 2 * this._subBuildHouse.height / 2) {
-                return "upgrade";
+                y > this._subBuildHouse.y + 2 * this._subBuildHouse.height / 4 &&
+                y < this._subBuildHouse.y + 3 * this._subBuildHouse.height / 4) {
+                return "farm";
+            }
+            if (x > this._subBuildHouse.x && x < this._subBuildHouse.x + this._subBuildHouse.width &&
+                y > this._subBuildHouse.y + 3 * this._subBuildHouse.height / 4 &&
+                y < this._subBuildHouse.y + 4 * this._subBuildHouse.height / 4) {
+                return "mine";
             }
         }
         if (x > this._buyTerritory.x && x < this._buyTerritory.x + this._buyTerritory.width &&
@@ -98,6 +110,11 @@ export class EconomicPanel {
         this._buildHouse.setX(this._buildUnit.width);
         this._buyTerritory.setX(this._buildUnit.width + this._buildHouse.width);
         this._mainMenu.setX(this._info.width);
+    }
+
+    setMessage(message: string) {
+        this._message.setY(this._message.scene.sys.game.scale.gameSize.height - this._message.height);
+        this._message.setText(message);
     }
 
     /*render(scene: Scene) {

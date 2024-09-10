@@ -96,5 +96,5 @@ export class Tile {
       if (prevCountry.hasNoCities()) {
           Game.getInstance().loseCountry(prevCountry, planetScene);
       }
-  }
+    }
   }

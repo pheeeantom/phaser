@@ -99,10 +99,12 @@ export class Country {
         return this._tiles.filter(tile => tile.improvement instanceof Locality).length === 0;
     }
 
-    income(): void {
+    income(): number {
+        let startMoney = this.money;
         this._tiles.filter(tile => tile.improvement ? isProfitable(tile.improvement) : false).
             map(tile => tile.improvement).
             forEach(incomeable => this.money += ((incomeable as unknown) as Profitable).income());
+        return this.money - startMoney;
     }
 
     /*tmpSpawnUnitAll(planetScene: PlanetScene) {

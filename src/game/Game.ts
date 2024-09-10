@@ -32,7 +32,7 @@ class Turn {
             this._country = this._countries[index + 1];
         }
         //Country.getCountryByName(this._country)!.tmpSpawnUnitAll(planetScene);
-        Country.getCountryByName(this._country)!.income();
+        Game.getInstance().economic.mainPanel.setMessage("+" + Country.getCountryByName(this._country)!.income() + "$");
         Country.getCountryByName(this._country)!.restoreCurrentMovementPoints();
         Game.getInstance().economic.mainPanel.setInfo(playScene);
     }

@@ -1,14 +1,14 @@
 import { Profitable } from "../../interfaces/Profitable";
 import { Locality } from "./Locality";
 
-export class City extends Locality implements Profitable {
-    static cost: number = 50;
+export class Town extends Locality implements Profitable {
+    static cost: number = 20;
     constructor() {
         super();
-        this.terrainTypeId = 8;
+        this.terrainTypeId = 10;
     }
 
     income(): number {
-        return 25;
+        return 5;
     }
 }

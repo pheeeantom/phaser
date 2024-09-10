@@ -12,7 +12,10 @@ import { Economic } from "../game/Economic";
 import { PlayScene } from "./PlayScene";
 import { Soldier } from "../unit/planet/martial/land/Soldier";
 import { Village } from "../planet/improvement/Village";
+import { Town } from "../planet/improvement/Town";
 import { City } from "../planet/improvement/City";
+import { Farm } from "../planet/improvement/Farm";
+import { Mine } from "../planet/improvement/Mine";
 
 export class PlanetScene extends Scene{
 
@@ -87,8 +90,9 @@ export class PlanetScene extends Scene{
                                   this.planet.initTmp(this, Game.getInstance());
 
     //Game.getInstance().turn.getCurrentCountry().tmpSpawnUnitAll(this);
-    Game.getInstance().turn.getCurrentCountry().income();
+    Game.getInstance().economic.mainPanel.setMessage("+" + Game.getInstance().turn.getCurrentCountry().income() + "$");
     Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+    //Game.getInstance().economic.mainPanel.setMessage("Game starts...");
 
 
     //let prevCurArmy: LandArmy;
@@ -104,48 +108,79 @@ export class PlanetScene extends Scene{
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
-        if (curArmy && (curArmy.getUnitsType() !== "soldier" || curArmy.getUnitsNumber() + 1 > curArmy.getUnitsMaxNum() ||
-          Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry())) {
-          Game.getInstance().economic.activated = "none";
-          return;
+        if (curArmy) {
+          if (curArmy.getUnitsType() !== "soldier") {
+            Game.getInstance().economic.mainPanel.setMessage("You can't place a soldier on not a soldier...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          else if (curArmy.getUnitsNumber() + 1 > curArmy.getUnitsMaxNum()) {
+            Game.getInstance().economic.mainPanel.setMessage("You can't have more than " + curArmy.getUnitsMaxNum() + " soldiers on one tile...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          else if (Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
+            Game.getInstance().economic.mainPanel.setMessage("You can't place a soldier on an enemy...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
         }
         if (Game.getInstance().turn.getCurrentCountry().money < Soldier.cost) {
+          Game.getInstance().economic.mainPanel.setMessage("Not enough money (soldier price is " + Soldier.cost + "$)...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
+          Game.getInstance().economic.mainPanel.setMessage("You can place a soldier only on your territory...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         tileOn.spawnUnit(this, Game.getInstance().turn.getCurrentCountry());
         Game.getInstance().turn.getCurrentCountry().money -= Soldier.cost;
         Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+        Game.getInstance().economic.mainPanel.setMessage("OK");
         Game.getInstance().economic.activated = "none";
         return;
       }
-      if (Game.getInstance().economic.activated === "village") {
+      if (Game.getInstance().economic.activated === "village" || Game.getInstance().economic.activated === "farm" ||
+        Game.getInstance().economic.activated === "mine") {
+        let building;
+        if (Game.getInstance().economic.activated === "village") {
+          building = Village;
+        }
+        else if (Game.getInstance().economic.activated === "farm") {
+          building = Farm;
+        }
+        else if (Game.getInstance().economic.activated === "mine") {
+          building = Mine;
+        }
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
-        if (Game.getInstance().turn.getCurrentCountry().money < Village.cost) {
+        if (Game.getInstance().turn.getCurrentCountry().money < building.cost) {
+          Game.getInstance().economic.mainPanel.setMessage("Not enough money (" + Game.getInstance().economic.activated + " price is " + building.cost + "$)...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
+          Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on your territory...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         if (tileOn.improvement) {
+          Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only where no other buildings...");
           Game.getInstance().economic.activated = "none";
           return;
         }
-        if (tileOn.terrainTypeId !== 2 && tileOn.terrainTypeId !== 4) {
+        if (!building.acceptableTerrains.includes(tileOn.terrainTypeId)) {
+          Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on " + Tiles.getNamesOfTerrains(building.acceptableTerrains).join(" or ") + "...");
           Game.getInstance().economic.activated = "none";
           return;
         }
-        new Village().place(newX, newY, 1000, this, 'village', Game.getInstance().turn.getCurrentCountry());
-        Game.getInstance().turn.getCurrentCountry().money -= Village.cost;
+        new building().place(newX, newY, 1000, this, 'building', Game.getInstance().turn.getCurrentCountry());
+        Game.getInstance().turn.getCurrentCountry().money -= building.cost;
         Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+        Game.getInstance().economic.mainPanel.setMessage("OK");
         Game.getInstance().economic.activated = "none";
         return;
       }
@@ -154,22 +189,37 @@ export class PlanetScene extends Scene{
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
         let isVillage = tileOn.improvement instanceof Village;
-        let isCity = tileOn.improvement instanceof City;
-        if (!isVillage) {
+        let isTown = tileOn.improvement instanceof Town;
+        if (!isVillage && !isTown) {
+          Game.getInstance().economic.mainPanel.setMessage("You can upgrade only a village or a town...");
           Game.getInstance().economic.activated = "none";
           return;
         }
-        if (isVillage && Game.getInstance().turn.getCurrentCountry().money < City.cost) {
+        if (isVillage && Game.getInstance().turn.getCurrentCountry().money < Town.cost) {
+          Game.getInstance().economic.mainPanel.setMessage("Not enough money (village upgrade price is " + Town.cost + "$)...");
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (isTown && Game.getInstance().turn.getCurrentCountry().money < City.cost) {
+          Game.getInstance().economic.mainPanel.setMessage("Not enough money (village upgrade price is " + City.cost + "$)...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
+          Game.getInstance().economic.mainPanel.setMessage("You can upgrade only your localities...");
           Game.getInstance().economic.activated = "none";
           return;
         }
-        new City().place(newX, newY, 10000, this, 'city', Game.getInstance().turn.getCurrentCountry());
-        Game.getInstance().turn.getCurrentCountry().money -= City.cost;
+        if (isVillage) {
+          new Town().place(newX, newY, 10000, this, 'town', Game.getInstance().turn.getCurrentCountry());
+          Game.getInstance().turn.getCurrentCountry().money -= Town.cost;
+        }
+        else if (isTown) {
+          new City().place(newX, newY, 1000000, this, 'city', Game.getInstance().turn.getCurrentCountry());
+          Game.getInstance().turn.getCurrentCountry().money -= City.cost;
+        }
         Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+        Game.getInstance().economic.mainPanel.setMessage("OK");
         Game.getInstance().economic.activated = "none";
         return;
       }
@@ -178,20 +228,29 @@ export class PlanetScene extends Scene{
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
         if (curArmy && Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
+          Game.getInstance().economic.mainPanel.setMessage("You can't buy a territory where is an enemy...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         if (Game.getInstance().turn.getCurrentCountry().money < 3) {
+          Game.getInstance().economic.mainPanel.setMessage("Not enough money (territory price is 3$)...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         if (!tileOn.neighbors.find(neighbor => Country.getCountryByTile(neighbor) === Game.getInstance().turn.getCurrentCountry())) {
+          Game.getInstance().economic.mainPanel.setMessage("You can only buy a territory near to your current territories...");
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (Country.getCountryByTile(tileOn)) {
+          Game.getInstance().economic.mainPanel.setMessage("You can only buy a neutral territory...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         Game.getInstance().turn.getCurrentCountry().addTile(tileOn, this);
         Game.getInstance().turn.getCurrentCountry().money -= 3;
         Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+        Game.getInstance().economic.mainPanel.setMessage("OK");
         Game.getInstance().economic.activated = "none";
         return;
       }

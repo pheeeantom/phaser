@@ -246,4 +246,45 @@ export class Tiles {
   getTileByXY(x: number, y: number): Tile {
     return this._grid[x][y];
   }
+
+  static getNamesOfTerrains(terrainTypeIdArr: number[]): string[] {
+    return terrainTypeIdArr.map((terrainTypeId) => {
+      if (terrainTypeId === 1) {
+        return "desert";
+      }
+      if (terrainTypeId === 2) {
+        return "grassland";
+      }
+      if (terrainTypeId === 3) {
+        return "mountains";
+      }
+      if (terrainTypeId === 4) {
+        return "plains";
+      }
+      if (terrainTypeId === 5) {
+        return "snow";
+      }
+      if (terrainTypeId === 6) {
+        return "tundra";
+      }
+      if (terrainTypeId === 7) {
+        return "water";
+      }
+      if (terrainTypeId === 8) {
+        return "city";
+      }
+      if (terrainTypeId === 9) {
+        return "village";
+      }
+      if (terrainTypeId === 10) {
+        return "town";
+      }
+      if (terrainTypeId === 11 || terrainTypeId === 12) {
+        return "farm";
+      }
+      if (terrainTypeId === 13) {
+        return "mine";
+      }
+    }) as string[];
+  }
 }

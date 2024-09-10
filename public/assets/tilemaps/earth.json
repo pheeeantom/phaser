@@ -31,15 +31,15 @@
  "tileheight":64,
  "tilesets":[
         {
-         "columns":9,
+         "columns":13,
          "firstgid":1,
          "image":"..\/tilesets\/earth_terrain.png",
          "imageheight":64,
-         "imagewidth":576,
+         "imagewidth":832,
          "margin":0,
          "name":"earth_terrain",
          "spacing":0,
-         "tilecount":9,
+         "tilecount":13,
          "tileheight":64,
          "tiles":[
                 {
@@ -167,11 +167,68 @@
                          "type":"bool",
                          "value":false
                         }]
+                }, 
+                {
+                 "id":9,
+                 "properties":[
+                        {
+                         "name":"movement_cost",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"water",
+                         "type":"bool",
+                         "value":false
+                        }]
+                },
+            
+                {
+                 "id":10,
+                 "properties":[
+                        {
+                         "name":"movement_points",
+                         "type":"float",
+                         "value":1
+                        }, 
+                        {
+                         "name":"water",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":11,
+                 "properties":[
+                        {
+                         "name":"movement_points",
+                         "type":"float",
+                         "value":1
+                        }, 
+                        {
+                         "name":"water",
+                         "type":"bool",
+                         "value":false
+                        }]
+                }, 
+                {
+                 "id":12,
+                 "properties":[
+                        {
+                         "name":"movement_points",
+                         "type":"float",
+                         "value":5
+                        }, 
+                        {
+                         "name":"water",
+                         "type":"bool",
+                         "value":false
+                        }]
                 }],
          "tilewidth":64
         }, 
         {
-         "firstgid":10,
+         "firstgid":14,
          "source":":\/automap-tiles.tsx"
         }],
  "tilewidth":64,

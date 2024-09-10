@@ -27,15 +27,27 @@ export class PlayScene extends Scene {
       }
       else if (action === "soldier") {
         Game.getInstance().economic.activated = "soldier";
+        Game.getInstance().economic.mainPanel.setMessage("Place a soldier...");
       }
       else if (action === "village") {
         Game.getInstance().economic.activated = "village";
+        Game.getInstance().economic.mainPanel.setMessage("Place a village...");
+      }
+      else if (action === "farm") {
+        Game.getInstance().economic.activated = "farm";
+        Game.getInstance().economic.mainPanel.setMessage("Place a farm...");
+      }
+      else if (action === "mine") {
+        Game.getInstance().economic.activated = "mine";
+        Game.getInstance().economic.mainPanel.setMessage("Place a mine...");
       }
       else if (action === "upgrade") {
         Game.getInstance().economic.activated = "upgrade";
+        Game.getInstance().economic.mainPanel.setMessage("Upgrade a village or a town...");
       }
       else if (action === "buy ter") {
         Game.getInstance().economic.activated = "ter";
+        Game.getInstance().economic.mainPanel.setMessage("Buy a neighbor territory...");
       }
       if (action !== "none") {
         Game.getInstance().economic.menuClicked = true;
