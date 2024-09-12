@@ -17,14 +17,25 @@ export class Country {
     private _tiles: Tile[];
     private static _countries: Map<string, Country> = new Map<string, Country>();
     private _territory: Phaser.GameObjects.Rectangle[];
-    constructor(name: string, color: string) {
+    genCityNames: Generator<any, void, unknown>;
+    constructor(name: string, color: string, scene: Scene) {
         this.name = name;
         this.color = color;
         this.money = 0;
         this._armies = [];
         this._tiles = [];
         this._territory = [];
+        this.genCityNames = this.getCityName(scene);
         Country._countries.set(name, this);
+    }
+
+    private *getCityName(scene: Scene) {
+        let i = 0;
+        console.log(i);
+        console.log(scene.game.cache.json.get("localities_names"));
+        let cityNames = scene.game.cache.json.get('localities_names')[this.name];
+        while (true)
+            yield cityNames[i++];
     }
 
     private isContainsTile(target: Tile): boolean {

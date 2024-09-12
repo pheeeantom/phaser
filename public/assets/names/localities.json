@@ -1,0 +1,5 @@
+{
+    "russia": ["moscow", "peterburg", "novosibirsk"],
+    "usa": ["newyork", "losangeles", "chicago"],
+    "china": ["beijing", "hongkong", "macau"]
+}

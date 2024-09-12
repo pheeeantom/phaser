@@ -190,7 +190,17 @@ export class PlanetScene extends Scene{
           Game.getInstance().economic.activated = "none";
           return;
         }
-        new building().place(newX, newY, 1000, this, 'building', Game.getInstance().turn.getCurrentCountry());
+        let name;
+        if (Game.getInstance().economic.activated === "village") {
+          name = Game.getInstance().turn.getCurrentCountry().genCityNames.next().value;
+        }
+        else if (Game.getInstance().economic.activated === "upgrade") {
+          name = tileOn.improvement!.name;
+        }
+        else {
+          name = Game.getInstance().economic.activated;
+        }
+        new building().place(newX, newY, 1000, this, name, Game.getInstance().turn.getCurrentCountry());
         Game.getInstance().turn.getCurrentCountry().money -= building.cost;
         Game.getInstance().economic.mainPanel.setInfo(this.playScene);
         Game.getInstance().economic.mainPanel.setMessage("OK");

@@ -25,9 +25,9 @@ export class Planet {
     }
 
     initTmp(planetScene: PlanetScene, game: Game) {
-        new Country('russia', '#ff0000');
-        new Country('usa', '#0000ff');
-        new Country('china', '#00ff00');
+        new Country('russia', '#ff0000', planetScene);
+        new Country('usa', '#0000ff', planetScene);
+        new Country('china', '#00ff00', planetScene);
         let unit1 = new Soldier();
         let unit2 = new Soldier();
         let unit3 = new Soldier();
@@ -63,17 +63,17 @@ export class Planet {
         //russianArmy1.movementRange();
         //this.curArmy = russianArmy1;
         let newyork = new Town();
-        newyork.place(2, 3, 10000, planetScene, 'newyork', Country.getCountryByName('usa')!);
+        newyork.place(2, 3, 10000, planetScene, Country.getCountryByName('usa')!.genCityNames.next().value, Country.getCountryByName('usa')!);
         Country.getCountryByName('usa')!.addTile(this.tiles.getTileByXY(2, 3), planetScene);
         Country.getCountryByName('usa')!.addTile(this.tiles.getTileByXY(2, 4), planetScene);
         //newyork.occupy(Country.getCountryByName('usa')!, planetScene);
         let moscow = new Town();
-        moscow.place(7, 3, 10000, planetScene, 'moscow', Country.getCountryByName('russia')!);
+        moscow.place(7, 3, 10000, planetScene, Country.getCountryByName('russia')!.genCityNames.next().value, Country.getCountryByName('russia')!);
         Country.getCountryByName('russia')!.addTile(this.tiles.getTileByXY(7, 3), planetScene);
         console.log(Country.getCountryByName('russia'));
         //moscow.occupy(Country.getCountryByName('russia')!, planetScene);
         let beijing = new Village();
-        beijing.place(7, 8, 1000, planetScene, 'beijing', Country.getCountryByName('china')!);
+        beijing.place(7, 8, 1000, planetScene, Country.getCountryByName('china')!.genCityNames.next().value, Country.getCountryByName('china')!);
         Country.getCountryByName('china')!.addTile(this.tiles.getTileByXY(7, 8), planetScene);
         Country.getCountryByName('china')!.addTile(this.tiles.getTileByXY(5, 3), planetScene);
         Country.getCountryByName('china')!.addTile(this.tiles.getTileByXY(6, 3), planetScene);
