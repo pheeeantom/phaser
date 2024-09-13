@@ -11,6 +11,7 @@ import { Improvement } from "~/planet/improvement/Improvement";
 import { Game } from "../game/Game";
 import { Planet } from "~/planet/Planet";
 import { CreateablePlanet } from "../interfaces/Createable";
+import { isRangedAttacker, RangedAttacker } from "../interfaces/RangedAttacker";
 
 export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     protected _range: Phaser.GameObjects.Ellipse[];
@@ -70,6 +71,10 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
 
     getCurrentOneMovementPoints() {
         return (this._units[0] as PlanetUnit).currentMovementPoints;
+    }
+
+    getCurrentShootMovementPoints() {
+        return ((this._units[0] as unknown) as RangedAttacker).range;
     }
 
     clearCurrentAllMovementPoints() {
@@ -346,7 +351,7 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
             extra = extra - smallNumber;
             bonus++;
         }
-        let diceRollWithBonusArr = (attackerIsBig ? this : army)._units[0].meleeAttackDice.split('d');
+        let diceRollWithBonusArr = /*(attackerIsBig ? this : army)._units[0].meleeAttackDice*/(attackerIsBig ? this : army)._units[0].meleeAttackDice.split('d');
         let diceRollWithBonus = (Number(diceRollWithBonusArr[0]) * bonus) + 'd' + diceRollWithBonusArr[1];
         let diceRollWithBonusExtra = (Number(diceRollWithBonusArr[0]) * (bonus - 1)) + 'd' + diceRollWithBonusArr[1];
         //let attackerDeaths = 0;
@@ -437,6 +442,24 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         this.kill(deaths[0]);
         (army as LandArmy).kill(deaths[1]);
         this.clearCurrentAllMovementPoints();
+    }
+
+    shoot(army: Army) {
+        let deaths = this.fightMany(this.getUnitsNumber(), ((this.getFirstUnit() as unknown) as RangedAttacker).rangedAttackDice,
+            army.getFirstUnit().meleeAttackDice);
+        Game.getInstance().economic.mainPanel.setMessage("You killed with shooting: " + deaths[1] + " " + army.getUnitsType());
+        (army as LandArmy).kill(deaths[1]);
+        this.clearCurrentAllMovementPoints();
+    }
+
+    canShoot() {
+        if (!isRangedAttacker(this.getFirstUnit())) {
+            return false;
+        }
+        if (this.getCurrentAllMovementPoints() >= (this._units[0] as PlanetUnit).movementPoints) {
+            return true;
+        }
+        return false;
     }
 
     pickOne(scene: Scene): LandArmy {

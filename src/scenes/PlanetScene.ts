@@ -16,6 +16,7 @@ import { Town } from "../planet/improvement/Town";
 import { City } from "../planet/improvement/City";
 import { Farm } from "../planet/improvement/Farm";
 import { Mine } from "../planet/improvement/Mine";
+import { Artillery } from "../unit/planet/martial/land/Artillery";
 
 export class PlanetScene extends Scene{
 
@@ -104,39 +105,47 @@ export class PlanetScene extends Scene{
         return;
       }
       console.log(Game.getInstance().economic.activated);
-      if (Game.getInstance().economic.activated === "soldier") {
+      if (Game.getInstance().economic.activated === "soldier" || Game.getInstance().economic.activated === "artillery") {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+        let unit;
+        if (Game.getInstance().economic.activated === "soldier") {
+          unit = Soldier;
+        }
+        else if (Game.getInstance().economic.activated === "artillery") {
+          unit = Artillery;
+        }
         if (curArmy) {
-          if (curArmy.getUnitsType() !== "soldier") {
-            Game.getInstance().economic.mainPanel.setMessage("You can't place a soldier on not a soldier...");
+          if (curArmy.getUnitsType() !== Game.getInstance().economic.activated) {
+            Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated +
+              " on not a " + Game.getInstance().economic.activated + "...");
             Game.getInstance().economic.activated = "none";
             return;
           }
           else if (curArmy.getUnitsNumber() + 1 > curArmy.getUnitsMaxNum()) {
-            Game.getInstance().economic.mainPanel.setMessage("You can't have more than " + curArmy.getUnitsMaxNum() + " soldiers on one tile...");
+            Game.getInstance().economic.mainPanel.setMessage("You can't have more than " + curArmy.getUnitsMaxNum() + " " + Game.getInstance().economic.activated + " on one tile...");
             Game.getInstance().economic.activated = "none";
             return;
           }
           else if (Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
-            Game.getInstance().economic.mainPanel.setMessage("You can't place a soldier on an enemy...");
+            Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated + " on an enemy...");
             Game.getInstance().economic.activated = "none";
             return;
           }
         }
-        if (Game.getInstance().turn.getCurrentCountry().money < Soldier.cost) {
-          Game.getInstance().economic.mainPanel.setMessage("Not enough money (soldier price is " + Soldier.cost + "$)...");
+        if (Game.getInstance().turn.getCurrentCountry().money < unit.cost) {
+          Game.getInstance().economic.mainPanel.setMessage("Not enough money (" + Game.getInstance().economic.activated + " price is " + unit.cost + "$)...");
           Game.getInstance().economic.activated = "none";
           return;
         }
         if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
-          Game.getInstance().economic.mainPanel.setMessage("You can place a soldier only on your territory...");
+          Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on your territory...");
           Game.getInstance().economic.activated = "none";
           return;
         }
-        tileOn.spawnUnit(this, Game.getInstance().turn.getCurrentCountry());
-        Game.getInstance().turn.getCurrentCountry().money -= Soldier.cost;
+        tileOn.spawnUnit(this, Game.getInstance().turn.getCurrentCountry(), unit);
+        Game.getInstance().turn.getCurrentCountry().money -= unit.cost;
         Game.getInstance().economic.mainPanel.setInfo(this.playScene);
         Game.getInstance().economic.mainPanel.setMessage("OK");
         Game.getInstance().economic.activated = "none";
@@ -293,6 +302,22 @@ export class PlanetScene extends Scene{
           console.log(this.planet.curArmy);
           //let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
           //let improvement = this.planet.tiles.getImprovementByXY(newX1, newY1);
+
+          if (this.planet.activated === "shoot") {
+            let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
+            this.planet.curArmy.clearRange();
+            if (!toArmy) {
+              Game.getInstance().economic.mainPanel.setMessage("No enemy on the tile");
+              this.planet.activated = "none";
+              this.planet.curArmy = null;
+              return;
+            }
+            this.planet.curArmy.shoot(toArmy);
+            this.planet.activated = "none";
+            this.planet.curArmy = null;
+            return;
+          }
+
           if (this.planet.activated === "move one") {
             //movingArmy = this.planet.curArmy.pickOne(this);
             //this.planet.curArmy = movingArmy;
@@ -317,6 +342,10 @@ export class PlanetScene extends Scene{
         }
         else if (this.planet.activated === "move one") {
           maxMP = this.planet.curArmy.getCurrentOneMovementPoints();
+        }
+        else if (this.planet.activated === "shoot") {
+          maxMP = this.planet.curArmy.canShoot() ? this.planet.curArmy.getCurrentShootMovementPoints() : 0;
+          Game.getInstance().economic.mainPanel.setMessage("Choose an enemy to shoot");
         }
         else {
           maxMP = 0;

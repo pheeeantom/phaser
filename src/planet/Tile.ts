@@ -70,7 +70,7 @@ export class Tile {
       //}
     }
 
-    spawnUnit(planetScene: PlanetScene, country: Country) {
+    spawnUnit(planetScene: PlanetScene, country: Country, unit) {
       let curArmy = planetScene.planet.tiles.getArmyByXY(this.x, this.y);
       if (curArmy && curArmy.getUnitsNumber() + 1 > curArmy.getUnitsMaxNum()) {
         return;
@@ -82,7 +82,7 @@ export class Tile {
           newArmy.addAllFromArmy(curArmy, planetScene, country.color);
           //curArmy.remove();
       }
-      (country.addArmy(newArmy, planetScene) as LandArmy).addUnits([new Soldier()], planetScene, country.color);
+      (country.addArmy(newArmy, planetScene) as LandArmy).addUnits([new unit()], planetScene, country.color);
     }
 
     occupy(country: Country, planetScene: PlanetScene) {

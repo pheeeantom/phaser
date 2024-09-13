@@ -26,7 +26,7 @@ export class EconomicPanel {
             this._subBuildUnit = null;
             return;
         }
-        this._subBuildUnit = scene.add.text(0, this._mainMenu.y + this._mainMenu.height + this._buildUnit.height, "Soldier", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
+        this._subBuildUnit = scene.add.text(0, this._mainMenu.y + this._mainMenu.height + this._buildUnit.height, "Soldier\nArtillery", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
         if (this._subBuildHouse) {
             this._subBuildHouse.destroy();
             this._subBuildHouse = null;
@@ -68,10 +68,19 @@ export class EconomicPanel {
         }
         if (this._subBuildUnit) {
             if (x > this._subBuildUnit.x && x < this._subBuildUnit.x + this._subBuildUnit.width &&
-                y > this._subBuildUnit.y && y < this._subBuildUnit.y + this._subBuildUnit.height) {
+                y > this._subBuildUnit.y + 0 * this._subBuildUnit.height / 2 &&
+                y < this._subBuildUnit.y + 1 * this._subBuildUnit.height / 2) {
                 //return "soldier";
                 let newTextArr = this._subBuildUnit.text.split("\n");
                 newTextArr[0] = "**" + newTextArr[0];
+                this._subBuildUnit.setText(newTextArr.join("\n"));
+            }
+            if (x > this._subBuildUnit.x && x < this._subBuildUnit.x + this._subBuildUnit.width &&
+                y > this._subBuildUnit.y + 1 * this._subBuildUnit.height / 2 &&
+                y < this._subBuildUnit.y + 2 * this._subBuildUnit.height / 2) {
+                //return "soldier";
+                let newTextArr = this._subBuildUnit.text.split("\n");
+                newTextArr[1] = "**" + newTextArr[1];
                 this._subBuildUnit.setText(newTextArr.join("\n"));
             }
         }
@@ -132,8 +141,14 @@ export class EconomicPanel {
         }
         if (this._subBuildUnit) {
             if (x > this._subBuildUnit.x && x < this._subBuildUnit.x + this._subBuildUnit.width &&
-                y > this._subBuildUnit.y && y < this._subBuildUnit.y + this._subBuildUnit.height) {
+                y > this._subBuildUnit.y + 0 * this._subBuildUnit.height / 2 &&
+                y < this._subBuildUnit.y + 1 * this._subBuildUnit.height / 2) {
                 return "soldier";
+            }
+            if (x > this._subBuildUnit.x && x < this._subBuildUnit.x + this._subBuildUnit.width &&
+                y > this._subBuildUnit.y + 1 * this._subBuildUnit.height / 2 &&
+                y < this._subBuildUnit.y + 2 * this._subBuildUnit.height / 2) {
+                return "artillery";
             }
         }
         if (this._subBuildHouse) {
@@ -199,7 +214,7 @@ export class EconomicPanel {
         if (this._subBuildUnit) {
             this._subBuildUnit.destroy();
             this._subBuildUnit = null;
-            this._subBuildUnit = scene.add.text(0, this._mainMenu.y + this._mainMenu.height + this._buildUnit.height, "Soldier", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
+            this._subBuildUnit = scene.add.text(0, this._mainMenu.y + this._mainMenu.height + this._buildUnit.height, "Soldier\nArtillery", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});
         }
         if (this._subBuildHouse) {
             this._subBuildHouse.destroy();
