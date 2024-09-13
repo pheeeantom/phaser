@@ -61,9 +61,12 @@ export class Tile {
       this._label?.destroy();
       //let {x: pixelX, y: pixelY} = planetScene.toSceneCoordsPixels(this.x, this.y);
       //if (pixelX && pixelY) {
+      for (let i = 9; i < name.length; i += 9) {
+        name = name.slice(0, i) + "\n" + name.slice(i);
+      }
       this._label =
         planetScene.add.text(this.x*64, this.y*64, name,
-        {color: color, backgroundColor: '#ffffff'}).setDepth(100);
+        {color: color, backgroundColor: '#ffffff', fontSize: '12px'}).setDepth(100);
       //}
     }
 
