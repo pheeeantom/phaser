@@ -36,6 +36,10 @@ export class PlayScene extends Scene {
         Game.getInstance().economic.activated = "artillery";
         Game.getInstance().economic.mainPanel.setMessage("Place an artillery...");
       }
+      else if (action === "tank") {
+        Game.getInstance().economic.activated = "tank";
+        Game.getInstance().economic.mainPanel.setMessage("Place a tank...");
+      }
       else if (action === "village") {
         Game.getInstance().economic.activated = "village";
         Game.getInstance().economic.mainPanel.setMessage("Place a village...");

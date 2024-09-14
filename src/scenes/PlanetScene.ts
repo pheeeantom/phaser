@@ -17,6 +17,7 @@ import { City } from "../planet/improvement/City";
 import { Farm } from "../planet/improvement/Farm";
 import { Mine } from "../planet/improvement/Mine";
 import { Artillery } from "../unit/planet/martial/land/Artillery";
+import { Tank } from "../unit/planet/martial/land/Tank";
 
 export class PlanetScene extends Scene{
 
@@ -105,7 +106,8 @@ export class PlanetScene extends Scene{
         return;
       }
       console.log(Game.getInstance().economic.activated);
-      if (Game.getInstance().economic.activated === "soldier" || Game.getInstance().economic.activated === "artillery") {
+      if (Game.getInstance().economic.activated === "soldier" || Game.getInstance().economic.activated === "artillery" ||
+        Game.getInstance().economic.activated === "tank") {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
@@ -115,6 +117,9 @@ export class PlanetScene extends Scene{
         }
         else if (Game.getInstance().economic.activated === "artillery") {
           unit = Artillery;
+        }
+        else if (Game.getInstance().economic.activated === "tank") {
+          unit = Tank;
         }
         if (curArmy) {
           if (curArmy.getUnitsType() !== Game.getInstance().economic.activated) {

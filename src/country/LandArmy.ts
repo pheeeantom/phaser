@@ -361,11 +361,11 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         let result2: [number, number];
         if (attackerIsBig) {
             result1 = this.fightMany(smallNumber - extra, diceRollWithBonus, army._units[0].meleeAttackDice);
-            result2 = (this.getUnitsNumber() !== 1 && army.getUnitsNumber() !== 1) ? this.fightMany(-(extra - smallNumber), diceRollWithBonusExtra, army._units[0].meleeAttackDice) : [0, 0];
+            result2 = this.fightMany(extra, diceRollWithBonusExtra, army._units[0].meleeAttackDice);
         }
         else {
             result1 = this.fightMany(smallNumber - extra, this._units[0].meleeAttackDice, diceRollWithBonus);
-            result2 = (this.getUnitsNumber() !== 1 && army.getUnitsNumber() !== 1) ? this.fightMany(-(extra - smallNumber), this._units[0].meleeAttackDice, diceRollWithBonusExtra) : [0, 0];
+            result2 = this.fightMany(extra, this._units[0].meleeAttackDice, diceRollWithBonusExtra);
         }
         /*for (let i = 0; i < smallNumber - extra; i++) {
             let tmp = this.fight(att, def).map(death => +death) as [number, number];
@@ -445,7 +445,8 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     }
 
     shoot(army: Army) {
-        let deaths = this.fightMany(this.getUnitsNumber(), ((this.getFirstUnit() as unknown) as RangedAttacker).rangedAttackDice,
+        let deaths = this.fightMany((this.getUnitsNumber() > army.getUnitsNumber() ?
+            army.getUnitsNumber() : this.getUnitsNumber()), ((this.getFirstUnit() as unknown) as RangedAttacker).rangedAttackDice,
             army.getFirstUnit().meleeAttackDice);
         Game.getInstance().economic.mainPanel.setMessage("You killed with shooting: " + deaths[1] + " " + army.getUnitsType());
         (army as LandArmy).kill(deaths[1]);
