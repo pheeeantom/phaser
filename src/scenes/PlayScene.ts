@@ -3,6 +3,7 @@ import { Planet } from "../planet/Planet";
 import { Game } from "../game/Game";
 import { Economic } from "../game/Economic";
 import { PlanetScene } from "./PlanetScene";
+import { EconomicPanel } from "../game/EconomicPanel";
 
 export class PlayScene extends Scene {
   gameObj: Game;
@@ -28,11 +29,19 @@ export class PlayScene extends Scene {
       else if (action === "build house") {
         Game.getInstance().economic.mainPanel.toggleBuildHouse(this);
       }
-      else if (action === "soldier") {
-        Game.getInstance().economic.activated = "soldier";
-        Game.getInstance().economic.mainPanel.setMessage("Place a soldier...");
+      else if (action === "upgrade") {
+        Game.getInstance().economic.activated = "upgrade";
+        Game.getInstance().economic.mainPanel.setMessage("Upgrade a village or a town...");
       }
-      else if (action === "artillery") {
+      else if (EconomicPanel.buildingsToBuy.map(building => building.toLowerCase()).includes(action)) {
+        Game.getInstance().economic.activated = action;
+        Game.getInstance().economic.mainPanel.setMessage("Place a " + action + "...");
+      }
+      else if (EconomicPanel.unitsToBuy.map(unit => unit.toLowerCase()).includes(action)) {
+        Game.getInstance().economic.activated = action;
+        Game.getInstance().economic.mainPanel.setMessage("Place a " + action + "...");
+      }
+      /*else if (action === "artillery") {
         Game.getInstance().economic.activated = "artillery";
         Game.getInstance().economic.mainPanel.setMessage("Place an artillery...");
       }
@@ -51,11 +60,7 @@ export class PlayScene extends Scene {
       else if (action === "mine") {
         Game.getInstance().economic.activated = "mine";
         Game.getInstance().economic.mainPanel.setMessage("Place a mine...");
-      }
-      else if (action === "upgrade") {
-        Game.getInstance().economic.activated = "upgrade";
-        Game.getInstance().economic.mainPanel.setMessage("Upgrade a village or a town...");
-      }
+      }*/
       else if (action === "buy ter") {
         Game.getInstance().economic.activated = "ter";
         Game.getInstance().economic.mainPanel.setMessage("Buy a neighbor territory...");

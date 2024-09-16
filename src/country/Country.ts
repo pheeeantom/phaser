@@ -78,6 +78,8 @@ export class Country {
         this._tiles.forEach(tile => {
             this.removeTile(tile);
             toCountry.addTile(tile, planetScene);
+            let improvement = tile.improvement;
+            if (improvement) tile.renderLabel(planetScene, improvement.name, toCountry.color);
         });
     }
 

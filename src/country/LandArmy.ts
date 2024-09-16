@@ -12,6 +12,7 @@ import { Game } from "../game/Game";
 import { Planet } from "~/planet/Planet";
 import { CreateablePlanet } from "../interfaces/Createable";
 import { isRangedAttacker, RangedAttacker } from "../interfaces/RangedAttacker";
+import { AirAttacker } from "../interfaces/AirAttacker";
 
 export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     protected _range: Phaser.GameObjects.Ellipse[];
@@ -449,6 +450,17 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
             army.getUnitsNumber() : this.getUnitsNumber()), ((this.getFirstUnit() as unknown) as RangedAttacker).rangedAttackDice,
             army.getFirstUnit().meleeAttackDice);
         Game.getInstance().economic.mainPanel.setMessage("You killed with shooting: " + deaths[1] + " " + army.getUnitsType());
+        (army as LandArmy).kill(deaths[1]);
+        this.clearCurrentAllMovementPoints();
+    }
+
+    airAttack(army: Army) {
+        let deaths = this.fightMany((this.getUnitsNumber() > army.getUnitsNumber() ?
+            army.getUnitsNumber() : this.getUnitsNumber()), ((this.getFirstUnit() as unknown) as AirAttacker).airAttackDice,
+            army.getFirstUnit().meleeAttackDice);
+        Game.getInstance().economic.mainPanel.setMessage("Killed with air attack: " + deaths[1] + " " + army.getUnitsType() +
+            ", lost: " + deaths[0] + " " + this.getUnitsType());
+        this.kill(deaths[0]);
         (army as LandArmy).kill(deaths[1]);
         this.clearCurrentAllMovementPoints();
     }

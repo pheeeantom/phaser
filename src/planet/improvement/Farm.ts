@@ -4,8 +4,8 @@ import { LandImprovement } from "./LandImprovement";
 import { Country } from "../../country/Country";
 
 export class Farm extends LandImprovement implements Profitable {
-    static cost: number = 3;
-    static acceptableTerrains: number[] = [2, 4];
+    static readonly cost: number = 3;
+    static readonly acceptableTerrains: number[] = [2, 4];
     private _income: number;
     constructor() {
         super();

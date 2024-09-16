@@ -18,6 +18,7 @@ import { Farm } from "../planet/improvement/Farm";
 import { Mine } from "../planet/improvement/Mine";
 import { Artillery } from "../unit/planet/martial/land/Artillery";
 import { Tank } from "../unit/planet/martial/land/Tank";
+import { AirCraft } from "../unit/planet/martial/air/AirCraft";
 
 export class PlanetScene extends Scene{
 
@@ -107,7 +108,7 @@ export class PlanetScene extends Scene{
       }
       console.log(Game.getInstance().economic.activated);
       if (Game.getInstance().economic.activated === "soldier" || Game.getInstance().economic.activated === "artillery" ||
-        Game.getInstance().economic.activated === "tank") {
+        Game.getInstance().economic.activated === "tank" || Game.getInstance().economic.activated === "aircraft") {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
@@ -120,6 +121,9 @@ export class PlanetScene extends Scene{
         }
         else if (Game.getInstance().economic.activated === "tank") {
           unit = Tank;
+        }
+        else if (Game.getInstance().economic.activated === "aircraft") {
+          unit = AirCraft;
         }
         if (curArmy) {
           if (curArmy.getUnitsType() !== Game.getInstance().economic.activated) {
@@ -323,6 +327,21 @@ export class PlanetScene extends Scene{
             return;
           }
 
+          if (this.planet.activated === "air attack") {
+            let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
+            this.planet.curArmy.clearRange();
+            if (!toArmy) {
+              Game.getInstance().economic.mainPanel.setMessage("No enemy on the tile");
+              this.planet.activated = "none";
+              this.planet.curArmy = null;
+              return;
+            }
+            this.planet.curArmy.airAttack(toArmy);
+            this.planet.activated = "none";
+            this.planet.curArmy = null;
+            return;
+          }
+
           if (this.planet.activated === "move one") {
             //movingArmy = this.planet.curArmy.pickOne(this);
             //this.planet.curArmy = movingArmy;
@@ -351,6 +370,9 @@ export class PlanetScene extends Scene{
         else if (this.planet.activated === "shoot") {
           maxMP = this.planet.curArmy.canShoot() ? this.planet.curArmy.getCurrentShootMovementPoints() : 0;
           Game.getInstance().economic.mainPanel.setMessage("Choose an enemy to shoot");
+        }
+        else if (this.planet.activated === "air attack") {
+          maxMP = this.planet.curArmy.getCurrentAllMovementPoints();
         }
         else {
           maxMP = 0;

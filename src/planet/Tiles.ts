@@ -42,7 +42,7 @@ export class Tiles {
 
     private calcCost(neighbour: Tile, army: LandArmy, currentCost: number, maxMP: number): number {
       let armyOnTile = this.getArmyByXY(neighbour.x, neighbour.y);
-      console.log(armyOnTile, army);
+      //console.log(armyOnTile, army);
       let isMine = armyOnTile && Country.getCountryByArmy(armyOnTile) === Country.getCountryByArmy(army);
       let isEnemy = armyOnTile && Country.getCountryByArmy(armyOnTile) !== Country.getCountryByArmy(army)
       let nodeCost0;

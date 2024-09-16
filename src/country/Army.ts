@@ -6,6 +6,7 @@ import { Createable } from "../interfaces/Createable";
 import { ContextMenu } from"../interfaces/ContextMenu";
 import { Tile } from "~/planet/Tile";
 import { isRangedAttacker } from "../interfaces/RangedAttacker";
+import { isAirAttacker } from "../interfaces/AirAttacker";
 
 class ArmyActions implements ContextMenu {
     private _menu: Phaser.GameObjects.Text;
@@ -40,7 +41,7 @@ class ArmyActions implements ContextMenu {
         let menuLeftX = this._menu.x;
         let menuTopY = this._menu.y;
         let menuRightX = this._menu.x + this._menu.width;;
-        let height = 1 * this._menu.height / (isRangedAttacker(this._army.getFirstUnit()) ? 3 : 2);
+        let height = 1 * this._menu.height / this._menu.text.split('\n').length;
 
         let unitsLen = this._army.getUnitsNumber();
         this.clear();
@@ -61,6 +62,11 @@ class ArmyActions implements ContextMenu {
                 console.log("shoooot");
                 return "shoot";
             }
+            if (isAirAttacker(this._army.getFirstUnit()) && pixelXNew > menuLeftX && pixelXNew < menuRightX &&
+                pixelYNew > menuTopY + 2 * height && pixelYNew < menuTopY + 3 * height) {
+                console.log("air attaaaaack");
+                return "air attack";
+            }
             return "none";
         }
         /*console.log(camera.width);
@@ -79,7 +85,8 @@ class ArmyActions implements ContextMenu {
         //if (pixelX !== null && pixelY !== null) {
         //console.log(this._army, isRangedAttacker(this._army));
         this._menu =
-            scene.add.text(x*64 + 32, y*64 + 10, 'move one\nmove all' + (isRangedAttacker(this._army.getFirstUnit()) ? '\nshoot' : ''),
+            scene.add.text(x*64 + 32, y*64 + 10, 'move one\nmove all' + (isRangedAttacker(this._army.getFirstUnit()) ? '\nshoot' :
+            (isAirAttacker(this._army.getFirstUnit()) ? '\nair attack' : '')),
             {color: '#000000', backgroundColor: '#555555'}).setDepth(400);
         //}
     }

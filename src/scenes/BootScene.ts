@@ -12,6 +12,7 @@ export class BootScene extends Scene {
     this.load.spritesheet('soldier', './assets/units/planet/martial/land/soldier.png', { frameWidth: 64, frameHeight: 64 });
     this.load.spritesheet('tank', './assets/units/planet/martial/land/tank.png', { frameWidth: 64, frameHeight: 64 });
     this.load.spritesheet('artillery', './assets/units/planet/martial/land/artillery.png', { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('aircraft', './assets/units/planet/martial/air/aircraft.png', { frameWidth: 64, frameHeight: 64 });
   }
 
   create() {
