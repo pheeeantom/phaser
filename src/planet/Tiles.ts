@@ -40,7 +40,10 @@ export class Tiles {
         return d1 + d2;
     }
 
-    private calcCost(neighbour: Tile, army: LandArmy, currentCost: number, maxMP: number): number {
+    private calcCost(neighbour: Tile, army: LandArmy, currentCost: number, maxMP: number, isShoot: boolean): number {
+      if (isShoot) {
+        return 1;
+      }
       let armyOnTile = this.getArmyByXY(neighbour.x, neighbour.y);
       //console.log(armyOnTile, army);
       let isMine = armyOnTile && Country.getCountryByArmy(armyOnTile) === Country.getCountryByArmy(army);
@@ -124,7 +127,7 @@ export class Tiles {
               }
               let possibleG = current.g + nodeCost0;*/
 
-              let possibleG = current.g + this.calcCost(neighbor, this.getArmyByXY(start.x, start.y)!, current.g, maxMP);
+              let possibleG = current.g + this.calcCost(neighbor, this.getArmyByXY(start.x, start.y)!, current.g, maxMP, false);
       
               if (!openSet.includes(neighbor)) {
                 openSet.push(neighbor);
@@ -144,7 +147,7 @@ export class Tiles {
         return [];
     }
 
-    getMovementRange(army: LandArmy, maxMP: number): Tile[] {
+    getMovementRange(army: LandArmy, maxMP: number, isShoot: boolean): Tile[] {
         let visitedNodes = new Map();
         const costSoFar = new Map();
         const nodesToVisitQueue: Tile[] = [];
@@ -176,7 +179,7 @@ export class Tiles {
                   nodeCost0 = Number.POSITIVE_INFINITY
                 }*/
                 const currentCost = costSoFar.get(currentNode);
-                const nodeCost = this.calcCost(neighbour, army, currentCost, maxMP);
+                const nodeCost = this.calcCost(neighbour, army, currentCost, maxMP, isShoot);
                 const newCost = currentCost + nodeCost;
 
                 /*let maxMP: number = (army as LandArmy).getCurrentAllMovementPoints();

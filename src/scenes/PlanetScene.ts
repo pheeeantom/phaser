@@ -273,8 +273,8 @@ export class PlanetScene extends Scene{
           Game.getInstance().economic.activated = "none";
           return;
         }
-        if (Game.getInstance().turn.getCurrentCountry().money < 3) {
-          Game.getInstance().economic.mainPanel.setMessage("Not enough money (territory price is 3$)...");
+        if (Game.getInstance().turn.getCurrentCountry().money < Game.getInstance().turn.getCurrentCountry().currentTerritoryCost) {
+          Game.getInstance().economic.mainPanel.setMessage("Not enough money (current territory price is " + Game.getInstance().turn.getCurrentCountry().currentTerritoryCost + "$)...");
           Game.getInstance().economic.activated = "none";
           return;
         }
@@ -289,7 +289,8 @@ export class PlanetScene extends Scene{
           return;
         }
         Game.getInstance().turn.getCurrentCountry().addTile(tileOn, this);
-        Game.getInstance().turn.getCurrentCountry().money -= 3;
+        Game.getInstance().turn.getCurrentCountry().money -= Game.getInstance().turn.getCurrentCountry().currentTerritoryCost;
+        Game.getInstance().turn.getCurrentCountry().currentTerritoryCost += 3;
         Game.getInstance().economic.mainPanel.setInfo(this.playScene);
         Game.getInstance().economic.mainPanel.setMessage("OK");
         Game.getInstance().economic.activated = "none";
@@ -300,7 +301,7 @@ export class PlanetScene extends Scene{
           //this.planet.curArmy.clearRange();
           let {x: newX1, y: newY1} = this.toSceneCoords(pointer.x, pointer.y);
           //let newX1 = this.camera.camera
-          if (!this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP).includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
+          if (!this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack").includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
             (this.planet.curArmy.getTile() === this.planet.tiles.getTileByXY(newX1, newY1))) {
             //this.planet.cancelMovingArmy(movingArmy, prevCurArmy, this);
             this.planet.curArmy.clearRange();
@@ -351,7 +352,7 @@ export class PlanetScene extends Scene{
           //  movingArmy = null;
           //}
           this.planet.curArmy.move(pointer.x, pointer.y,
-            this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP), this, maxMP);
+            this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack"), this, maxMP);
           this.planet.activated = "none";
           this.planet.curArmy = null;
           console.log(Country.allArmies());
@@ -395,7 +396,7 @@ export class PlanetScene extends Scene{
           this.planet.curArmy = movingArmy;
         }*/
 
-        if (this.planet.activated !== "none") this.planet.curArmy.renderMovementRange(this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP));
+        if (this.planet.activated !== "none") this.planet.curArmy.renderMovementRange(this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack"));
         console.log(this.planet.activated);
         if (this.planet.activated === "none") {
           //this.planet.curArmy.clearRange();

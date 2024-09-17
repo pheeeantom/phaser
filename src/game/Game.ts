@@ -34,6 +34,7 @@ class Turn {
         //Country.getCountryByName(this._country)!.tmpSpawnUnitAll(planetScene);
         Game.getInstance().economic.mainPanel.setMessage("+" + Country.getCountryByName(this._country)!.income() + "$");
         Country.getCountryByName(this._country)!.restoreCurrentMovementPoints();
+        Country.getCountryByName(this._country)!.currentTerritoryCost = 3;
         Game.getInstance().economic.mainPanel.setInfo(playScene);
     }
 
@@ -74,9 +75,9 @@ export class Game {
             country.armies[i].remove();
             i--;
         }*/
+        country.giveAllTilesToAnotherCountry(Game.getInstance().turn.getCurrentCountry(), scene);
         this.turn.removeCountry(country.name);
         Country.removeCountry(country);
-        country.giveAllTilesToAnotherCountry(Game.getInstance().turn.getCurrentCountry(), scene);
         if ([...Country.allCountries().values()].length === 1) {
             scene.game.scene.scenes.forEach((scene) => {
                 const key = scene.scene.key; // This is not a typo, the scene here is more like a "game" object, so the scene actually is under the "scene" property.

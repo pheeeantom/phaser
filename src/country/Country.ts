@@ -18,6 +18,7 @@ export class Country {
     private static _countries: Map<string, Country> = new Map<string, Country>();
     private _territory: Phaser.GameObjects.Rectangle[];
     genCityNames: Generator<any, void, unknown>;
+    currentTerritoryCost: number;
     constructor(name: string, color: string, scene: Scene) {
         this.name = name;
         this.color = color;
@@ -26,6 +27,7 @@ export class Country {
         this._tiles = [];
         this._territory = [];
         this.genCityNames = this.getCityName(scene);
+        this.currentTerritoryCost = 3;
         Country._countries.set(name, this);
     }
 
@@ -75,12 +77,14 @@ export class Country {
     }
 
     giveAllTilesToAnotherCountry(toCountry: Country, planetScene): void {
-        this._tiles.forEach(tile => {
+        console.log(this.name, this._tiles);
+        for (let i = this._tiles.length - 1; i >= 0; i--) {
+            let tile = this._tiles[i];
             this.removeTile(tile);
             toCountry.addTile(tile, planetScene);
             let improvement = tile.improvement;
             if (improvement) tile.renderLabel(planetScene, improvement.name, toCountry.color);
-        });
+        }
     }
 
     addArmy(target: Army, scene: Scene): Army {

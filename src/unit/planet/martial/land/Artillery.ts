@@ -13,7 +13,7 @@ export class Artillery extends PlanetUnit implements RangedAttacker {
         this.name = "artillery";
         this.meleeAttackDice = "1d2";
         this.maxNum = 5;
-        this.range = 2;
+        this.range = 5;
         this.rangedAttackDice = "1d6";
     }
 }
