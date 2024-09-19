@@ -13,6 +13,7 @@ import { Planet } from "~/planet/Planet";
 import { CreateablePlanet } from "../interfaces/Createable";
 import { isRangedAttacker, RangedAttacker } from "../interfaces/RangedAttacker";
 import { AirAttacker } from "../interfaces/AirAttacker";
+import { isShippable, Shippable } from "../interfaces/Marine";
 
 export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     protected _range: Phaser.GameObjects.Ellipse[];
@@ -103,6 +104,11 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         }*/
         let countryNew = Game.getInstance().turn.getCurrentCountry();
         tile.occupy(countryNew, planetScene);
+        if (isShippable(this.getFirstUnit()) && (tile.water &&
+            !((this.getFirstUnit() as unknown) as Shippable).flag_shippable) ||
+            (!tile.water && ((this.getFirstUnit() as unknown) as Shippable).flag_shippable)) {
+            this.toggleShip(planetScene);
+        }
     }
 
     protected retreat(planetScene: PlanetScene, startTile: Tile): void {
@@ -123,6 +129,11 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         if (!country) throw new Error('Army is not in any country');
         this.renderLabel(planetScene, country.color);
         this.menu.clear();
+        if (isShippable(this.getFirstUnit()) && (startTile.water &&
+            !((this.getFirstUnit() as unknown) as Shippable).flag_shippable) ||
+            (!startTile.water && ((this.getFirstUnit() as unknown) as Shippable).flag_shippable)) {
+            this.toggleShip(planetScene);
+        }
     }
 
     private postMove(planetScene: PlanetScene, toArmy: LandArmy | null, /*improvement: Improvement | null,*/ startTile: Tile, totalCost: number) {
@@ -137,6 +148,13 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 this.addAllFromArmy(toArmy, planetScene, Country.getCountryByArmy(this)!.color);
                 //toArmy.remove();
                 //console.log(Country.getCountryByArmy(this)!.armies);
+
+                if (isShippable(this.getFirstUnit()) && (this.getTile().water &&
+                    !((this.getFirstUnit() as unknown) as Shippable).flag_shippable) ||
+                    (!this.getTile().water && ((this.getFirstUnit() as unknown) as Shippable).flag_shippable)) {
+                    this.toggleShip(planetScene);
+                }
+
                 return;
             }
             if (Country.getCountryByArmy(toArmy) !== Country.getCountryByArmy(this)) {
@@ -225,6 +243,11 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 if (tile !== shortestPath[shortestPath.length - 1]) {
                     let countryNew = Game.getInstance().turn.getCurrentCountry();
                     tile.occupy(countryNew, planetScene);
+                    if (isShippable(this.getFirstUnit()) && (tile.water &&
+                        !((this.getFirstUnit() as unknown) as Shippable).flag_shippable) ||
+                        (!tile.water && ((this.getFirstUnit() as unknown) as Shippable).flag_shippable)) {
+                        this.toggleShip(planetScene);
+                    }
                 }
             },
             250, next);
@@ -361,12 +384,42 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         let result1: [number, number];
         let result2: [number, number];
         if (attackerIsBig) {
-            result1 = this.fightMany(smallNumber - extra, diceRollWithBonus, army._units[0].meleeAttackDice);
-            result2 = this.fightMany(extra, diceRollWithBonusExtra, army._units[0].meleeAttackDice);
+            if ((isShippable(this.getFirstUnit()) && (this.getFirstUnit() as unknown as Shippable).flag_shippable) &&
+                (isShippable(army.getFirstUnit()) && (army.getFirstUnit() as unknown as Shippable).flag_shippable)) {
+                result1 = this.fightMany(smallNumber - extra, diceRollWithBonus.split('d')[0] + 'd2', '1d2');
+                result2 = this.fightMany(extra, diceRollWithBonusExtra.split('d')[0] + 'd2', '1d2');
+            }
+            else if (isShippable(this.getFirstUnit()) && (this.getFirstUnit() as unknown as Shippable).flag_shippable) {
+                result1 = this.fightMany(smallNumber - extra, diceRollWithBonus.split('d')[0] + 'd2', army._units[0].meleeAttackDice);
+                result2 = this.fightMany(extra, diceRollWithBonusExtra.split('d')[0] + 'd2', army._units[0].meleeAttackDice);
+            }
+            else if (isShippable(army.getFirstUnit()) && (army.getFirstUnit() as unknown as Shippable).flag_shippable) {
+                result1 = this.fightMany(smallNumber - extra, diceRollWithBonus, '1d2');
+                result2 = this.fightMany(extra, diceRollWithBonusExtra, '1d2');
+            }
+            else {
+                result1 = this.fightMany(smallNumber - extra, diceRollWithBonus, army._units[0].meleeAttackDice);
+                result2 = this.fightMany(extra, diceRollWithBonusExtra, army._units[0].meleeAttackDice);
+            }
         }
         else {
-            result1 = this.fightMany(smallNumber - extra, this._units[0].meleeAttackDice, diceRollWithBonus);
-            result2 = this.fightMany(extra, this._units[0].meleeAttackDice, diceRollWithBonusExtra);
+            if ((isShippable(this.getFirstUnit()) && (this.getFirstUnit() as unknown as Shippable).flag_shippable) &&
+                (isShippable(army.getFirstUnit()) && (army.getFirstUnit() as unknown as Shippable).flag_shippable)) {
+                result1 = this.fightMany(smallNumber - extra, '1d2', diceRollWithBonus.split('d')[0] + 'd2');
+                result2 = this.fightMany(extra, '1d2', diceRollWithBonusExtra.split('d')[0] + 'd2');
+            }
+            else if (isShippable(this.getFirstUnit()) && (this.getFirstUnit() as unknown as Shippable).flag_shippable) {
+                result1 = this.fightMany(smallNumber - extra, '1d2', diceRollWithBonus);
+                result2 = this.fightMany(extra, '1d2', diceRollWithBonusExtra);
+            }
+            else if (isShippable(army.getFirstUnit()) && (army.getFirstUnit() as unknown as Shippable).flag_shippable) {
+                result1 = this.fightMany(smallNumber - extra, '1d2', diceRollWithBonus.split('d')[0] + 'd2');
+                result2 = this.fightMany(extra, '1d2', diceRollWithBonusExtra.split('d')[0] + 'd2');
+            }
+            else {
+                result1 = this.fightMany(smallNumber - extra, this._units[0].meleeAttackDice, diceRollWithBonus);
+                result2 = this.fightMany(extra, this._units[0].meleeAttackDice, diceRollWithBonusExtra);
+            }
         }
         /*for (let i = 0; i < smallNumber - extra; i++) {
             let tmp = this.fight(att, def).map(death => +death) as [number, number];
@@ -499,5 +552,20 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         this.clearRange();
         this.menu.clear();
         return movingArmy;
+    }
+
+    toggleShip(planetScene: PlanetScene) {
+        this._sprite.destroy();
+        if ((this.getFirstUnit() as unknown as Shippable).flag_shippable) {
+            this._sprite = planetScene.physics.add.sprite(64*this._x, 64*this._y, this.getUnitsType()).setOrigin(0, 0).setDepth(200);
+        }
+        else {
+            this._sprite = planetScene.physics.add.sprite(64*this._x, 64*this._y, 'ship').setOrigin(0, 0).setDepth(200);
+        }
+        this._units.forEach(unit => {
+            let shippable = unit as unknown as Shippable;
+            shippable.flag_shippable = !shippable.flag_shippable;
+        });
+        console.log("kekes", (this.getFirstUnit() as unknown as Shippable).flag_shippable);
     }
 }

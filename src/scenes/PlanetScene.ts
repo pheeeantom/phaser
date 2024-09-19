@@ -268,6 +268,11 @@ export class PlanetScene extends Scene{
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+        if (tileOn.water) {
+          Game.getInstance().economic.mainPanel.setMessage("You can't buy a water territory...");
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
         if (curArmy && Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
           Game.getInstance().economic.mainPanel.setMessage("You can't buy a territory where is an enemy...");
           Game.getInstance().economic.activated = "none";

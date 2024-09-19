@@ -49,7 +49,13 @@ export class Tiles {
       let isMine = armyOnTile && Country.getCountryByArmy(armyOnTile) === Country.getCountryByArmy(army);
       let isEnemy = armyOnTile && Country.getCountryByArmy(armyOnTile) !== Country.getCountryByArmy(army)
       let nodeCost0;
-      if (!neighbour.water && !armyOnTile) {
+      let water = neighbour.water && !!((army.getFirstUnit() as PlanetUnit).landWater & 1);
+      let land = !neighbour.water && !!((army.getFirstUnit() as PlanetUnit).landWater & 2);
+      console.log(water, land);
+      if (water && land) {
+        return Number.POSITIVE_INFINITY;
+      }
+      if (!armyOnTile) {
         nodeCost0 = neighbour.movementCost;
       }
       else if (isMine && army.getFirstUnit().name !== armyOnTile?.getFirstUnit().name) {
@@ -58,11 +64,11 @@ export class Tiles {
       else if (isMine && army.getUnitsNumber() + armyOnTile!.getUnitsNumber() > army.getUnitsMaxNum()) {
         nodeCost0 = Number.POSITIVE_INFINITY;
       }
-      else if (!neighbour.water && armyOnTile && isEnemy) {
+      else if (isEnemy) {
         nodeCost0 = /*army.getCurrentAllMovementPoints()*/maxMP > 0 ? /*army.getCurrentAllMovementPoints()*/maxMP - currentCost : Number.POSITIVE_INFINITY;
         if (nodeCost0 < neighbour.movementCost) nodeCost0 = Number.POSITIVE_INFINITY;
       }
-      else if (!neighbour.water && armyOnTile && isMine) {
+      else if (isMine) {
         nodeCost0 = neighbour.movementCost;
       }
       else {

@@ -7,6 +7,7 @@ import { ContextMenu } from"../interfaces/ContextMenu";
 import { Tile } from "~/planet/Tile";
 import { isRangedAttacker } from "../interfaces/RangedAttacker";
 import { isAirAttacker } from "../interfaces/AirAttacker";
+import { isShippable, Shippable } from "../interfaces/Marine";
 
 class ArmyActions implements ContextMenu {
     private _menu: Phaser.GameObjects.Text;
@@ -163,8 +164,15 @@ export abstract class Army implements Createable<Army> {
     }
 
     protected renderIcon(scene: Scene) {
+        let spriteName;
+        if (isShippable(this.getFirstUnit())) {
+            spriteName = (this.getFirstUnit() as unknown as Shippable).flag_shippable ? 'ship' : this.getUnitsType();
+        }
+        else {
+            spriteName = this.getUnitsType();
+        }
         this.clearIcon();
-        this._sprite = scene.physics.add.sprite(64*this._x, 64*this._y, this.getUnitsType()).setOrigin(0, 0).setDepth(200);
+        this._sprite = scene.physics.add.sprite(64*this._x, 64*this._y, spriteName).setOrigin(0, 0).setDepth(200);
     }
 
     protected clearIcon() {
