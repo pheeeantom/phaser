@@ -5,6 +5,7 @@ import { LandArmy } from "../country/LandArmy";
 import { Army } from "../country/Army";
 import { Country } from "../country/Country";
 import { Planet } from "./Planet";
+import { LAND, WATER } from "../interfaces/Marine";
 
 export class Tiles {
     private _grid: Tile[][];
@@ -49,10 +50,10 @@ export class Tiles {
       let isMine = armyOnTile && Country.getCountryByArmy(armyOnTile) === Country.getCountryByArmy(army);
       let isEnemy = armyOnTile && Country.getCountryByArmy(armyOnTile) !== Country.getCountryByArmy(army)
       let nodeCost0;
-      let water = neighbour.water && !!((army.getFirstUnit() as PlanetUnit).landWater & 1);
-      let land = !neighbour.water && !!((army.getFirstUnit() as PlanetUnit).landWater & 2);
+      let water = neighbour.water && !((army.getFirstUnit() as PlanetUnit).landWater & WATER);
+      let land = !neighbour.water && !((army.getFirstUnit() as PlanetUnit).landWater & LAND);
       console.log(water, land);
-      if (water && land) {
+      if (water || land) {
         return Number.POSITIVE_INFINITY;
       }
       if (!armyOnTile) {

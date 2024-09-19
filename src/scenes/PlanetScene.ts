@@ -19,6 +19,10 @@ import { Mine } from "../planet/improvement/Mine";
 import { Artillery } from "../unit/planet/martial/land/Artillery";
 import { Tank } from "../unit/planet/martial/land/Tank";
 import { AirCraft } from "../unit/planet/martial/air/AirCraft";
+import { Destroyer } from "../unit/planet/martial/marine/Destroyer";
+import { BattleShip } from "../unit/planet/martial/marine/BattleShip";
+import { Locality } from "../planet/improvement/Locality";
+import { LAND, WATER } from "../interfaces/Marine";
 
 export class PlanetScene extends Scene{
 
@@ -108,7 +112,8 @@ export class PlanetScene extends Scene{
       }
       console.log(Game.getInstance().economic.activated);
       if (Game.getInstance().economic.activated === "soldier" || Game.getInstance().economic.activated === "artillery" ||
-        Game.getInstance().economic.activated === "tank" || Game.getInstance().economic.activated === "aircraft") {
+        Game.getInstance().economic.activated === "tank" || Game.getInstance().economic.activated === "aircraft" ||
+        Game.getInstance().economic.activated === "destroyer" || Game.getInstance().economic.activated === "battleship") {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
@@ -124,6 +129,24 @@ export class PlanetScene extends Scene{
         }
         else if (Game.getInstance().economic.activated === "aircraft") {
           unit = AirCraft;
+        }
+        else if (Game.getInstance().economic.activated === "destroyer") {
+          unit = Destroyer;
+        }
+        else if (Game.getInstance().economic.activated === "battleship") {
+          unit = BattleShip;
+        }
+        if (!(new unit().landWater & WATER) && tileOn.water) {
+          Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated +
+            " on water while it is not marine...");
+          Game.getInstance().economic.activated = "none";
+          return;
+        }
+        if (!(new unit().landWater & LAND) && !tileOn.water) {
+          Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated +
+            " on land while it is not landy...");
+          Game.getInstance().economic.activated = "none";
+          return;
         }
         if (curArmy) {
           if (curArmy.getUnitsType() !== Game.getInstance().economic.activated) {
@@ -268,8 +291,8 @@ export class PlanetScene extends Scene{
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
-        if (tileOn.water) {
-          Game.getInstance().economic.mainPanel.setMessage("You can't buy a water territory...");
+        if (tileOn.water && !tileOn.neighbors.find(tile => tile.improvement instanceof Locality)) {
+          Game.getInstance().economic.mainPanel.setMessage("You can't buy a water territory not near to locality...");
           Game.getInstance().economic.activated = "none";
           return;
         }

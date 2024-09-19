@@ -11,7 +11,7 @@ export class EconomicPanel {
     private _buyTerritory: Phaser.GameObjects.Text;
     private _info: Phaser.GameObjects.Text;
     private _message: Phaser.GameObjects.Text;
-    static readonly unitsToBuy = ["Soldier", "Artillery", "Tank", "AirCraft"];
+    static readonly unitsToBuy = ["Soldier", "Artillery", "Tank", "AirCraft", "Destroyer", "BattleShip"];
     static readonly buildingsToBuy = ["Upgrade", "Village", "Farm", "Mine"];
     constructor(scene: Scene) {
         this._buildUnit = scene.add.text(0, 0, "Build unit⯆", {backgroundColor: "#888888", color: "#000000", fontSize: "20px"});

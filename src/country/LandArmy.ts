@@ -413,8 +413,8 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 result2 = this.fightMany(extra, '1d2', diceRollWithBonusExtra);
             }
             else if (isShippable(army.getFirstUnit()) && (army.getFirstUnit() as unknown as Shippable).flag_shippable) {
-                result1 = this.fightMany(smallNumber - extra, '1d2', diceRollWithBonus.split('d')[0] + 'd2');
-                result2 = this.fightMany(extra, '1d2', diceRollWithBonusExtra.split('d')[0] + 'd2');
+                result1 = this.fightMany(smallNumber - extra, this._units[0].meleeAttackDice, diceRollWithBonus.split('d')[0] + 'd2');
+                result2 = this.fightMany(extra, this._units[0].meleeAttackDice, diceRollWithBonusExtra.split('d')[0] + 'd2');
             }
             else {
                 result1 = this.fightMany(smallNumber - extra, this._units[0].meleeAttackDice, diceRollWithBonus);
