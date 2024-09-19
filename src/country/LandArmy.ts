@@ -436,8 +436,7 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     }
     
     private playAttackAnim() {
-        let anim;
-        _.delay(() => anim = this._sprite.scene.physics.add.sprite(64*this._x, 64*this._y, "attack").setOrigin(0, 0).setDepth(1000), 0);
+        let anim = this._sprite.scene.physics.add.sprite(64*this._x, 64*this._y, "attack").setOrigin(0, 0).setDepth(1000);
         _.delay(() => anim.destroy(), 200);
         _.delay(() => anim = this._sprite.scene.physics.add.sprite(64*this._x, 64*this._y, "attack").setOrigin(0, 0).setDepth(1000), 300);
         _.delay(() => anim.destroy(), 400);
