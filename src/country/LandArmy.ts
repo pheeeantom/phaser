@@ -14,6 +14,7 @@ import { CreateablePlanet } from "../interfaces/Createable";
 import { isRangedAttacker, RangedAttacker } from "../interfaces/RangedAttacker";
 import { AirAttacker } from "../interfaces/AirAttacker";
 import { isShippable, Shippable } from "../interfaces/Marine";
+import _ from "lodash";
 
 export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     protected _range: Phaser.GameObjects.Ellipse[];
@@ -104,11 +105,11 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         }*/
         let countryNew = Game.getInstance().turn.getCurrentCountry();
         tile.occupy(countryNew, planetScene);
-        if (isShippable(this.getFirstUnit()) && (tile.water &&
+        /*if (isShippable(this.getFirstUnit()) && (tile.water &&
             !((this.getFirstUnit() as unknown) as Shippable).flag_shippable) ||
             (!tile.water && ((this.getFirstUnit() as unknown) as Shippable).flag_shippable)) {
             this.toggleShip(planetScene);
-        }
+        }*/
     }
 
     protected retreat(planetScene: PlanetScene, startTile: Tile): void {
@@ -149,11 +150,11 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 //toArmy.remove();
                 //console.log(Country.getCountryByArmy(this)!.armies);
 
-                if (isShippable(this.getFirstUnit()) && (this.getTile().water &&
+                /*if (isShippable(this.getFirstUnit()) && (this.getTile().water &&
                     !((this.getFirstUnit() as unknown) as Shippable).flag_shippable) ||
                     (!this.getTile().water && ((this.getFirstUnit() as unknown) as Shippable).flag_shippable)) {
                     this.toggleShip(planetScene);
-                }
+                }*/
 
                 return;
             }
@@ -243,11 +244,11 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 if (tile !== shortestPath[shortestPath.length - 1]) {
                     let countryNew = Game.getInstance().turn.getCurrentCountry();
                     tile.occupy(countryNew, planetScene);
-                    if (isShippable(this.getFirstUnit()) && (tile.water &&
-                        !((this.getFirstUnit() as unknown) as Shippable).flag_shippable) ||
-                        (!tile.water && ((this.getFirstUnit() as unknown) as Shippable).flag_shippable)) {
-                        this.toggleShip(planetScene);
-                    }
+                }
+                if (isShippable(this.getFirstUnit()) && (tile.water &&
+                    !((this.getFirstUnit() as unknown) as Shippable).flag_shippable) ||
+                    (!tile.water && ((this.getFirstUnit() as unknown) as Shippable).flag_shippable)) {
+                    this.toggleShip(planetScene);
                 }
             },
             250, next);
@@ -433,8 +434,23 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
         }*/
         return [result1[0] + result2[0], result1[1] + result2[1]];
     }
+    
+    private playAttackAnim() {
+        let anim;
+        _.delay(() => anim = this._sprite.scene.physics.add.sprite(64*this._x, 64*this._y, "attack").setOrigin(0, 0).setDepth(1000), 0);
+        _.delay(() => anim.destroy(), 200);
+        _.delay(() => anim = this._sprite.scene.physics.add.sprite(64*this._x, 64*this._y, "attack").setOrigin(0, 0).setDepth(1000), 300);
+        _.delay(() => anim.destroy(), 400);
+        _.delay(() => anim = this._sprite.scene.physics.add.sprite(64*this._x, 64*this._y, "attack").setOrigin(0, 0).setDepth(1000), 500);
+        _.delay(() => anim.destroy(), 600);
+        for (let i = 0; i < 3; i++) {
+            _.delay(() => anim = this._sprite.scene.physics.add.sprite(64*this._x, 64*this._y, "attack").setOrigin(0, 0).setDepth(1000), 600 + ((i * 2 + 1) * 60));
+            _.delay(() => anim.destroy(), 600 + ((i * 2 + 2) * 60));
+        }
+    }
 
     kill(amount: number) {
+        this.playAttackAnim();
         if (amount) {
             if (amount >= this.getUnitsNumber()) {
                 //(smallArmy as LandArmy).removeUnits(smallArmy._units, (smallArmy as LandArmy)._sprite.scene, Country.getCountryByArmy(smallArmy)!.color);
