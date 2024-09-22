@@ -23,6 +23,7 @@ import { Destroyer } from "../unit/planet/martial/marine/Destroyer";
 import { BattleShip } from "../unit/planet/martial/marine/BattleShip";
 import { Locality } from "../planet/improvement/Locality";
 import { LAND, WATER } from "../interfaces/Marine";
+import { Factory } from "../planet/improvement/Factory";
 
 export class PlanetScene extends Scene{
 
@@ -184,7 +185,8 @@ export class PlanetScene extends Scene{
         return;
       }
       if (Game.getInstance().economic.activated === "village" || Game.getInstance().economic.activated === "farm" ||
-        Game.getInstance().economic.activated === "mine" || Game.getInstance().economic.activated === "upgrade") {
+        Game.getInstance().economic.activated === "mine" || Game.getInstance().economic.activated === "upgrade" ||
+        Game.getInstance().economic.activated === "factory") {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
         let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
         let tileOn = this.planet.tiles.getTileByXY(newX, newY);
@@ -197,6 +199,14 @@ export class PlanetScene extends Scene{
         }
         else if (Game.getInstance().economic.activated === "mine") {
           building = Mine;
+        }
+        else if (Game.getInstance().economic.activated === "factory") {
+          if (!Game.getInstance().turn.getCurrentCountry().canPlaceFactory()) {
+            Game.getInstance().economic.mainPanel.setMessage("There should be at least 3 mines per 1 factory...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          building = Factory;
         }
         else if (Game.getInstance().economic.activated === "upgrade") {
           if (tileOn.improvement instanceof Village) {

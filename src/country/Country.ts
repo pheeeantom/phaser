@@ -8,6 +8,8 @@ import { Scene } from "phaser";
 import { SpaceArmy } from "./SpaceArmy";
 import { Locality } from "../planet/improvement/Locality";
 import { isProfitable, Profitable } from "../interfaces/Profitable";
+import { Mine } from "../planet/improvement/Mine";
+import { Factory } from "../planet/improvement/Factory";
 
 export class Country {
     name: string;
@@ -175,5 +177,17 @@ export class Country {
 
     static getCountryByArmy(army: Army): Country | null {
         return [...Country._countries.values()].find(country => country._armies.indexOf(army) >= 0) ?? null;
+    }
+
+    private countMines() {
+        return this._tiles.reduce((acc, tile) => acc + +(tile.improvement instanceof Mine), 0);
+    }
+
+    private countFactories() {
+        return this._tiles.reduce((acc, tile) => acc + +(tile.improvement instanceof Factory), 0);
+    }
+
+    canPlaceFactory() {
+        return (this.countMines() - 3 * this.countFactories()) >= 3;
     }
 }

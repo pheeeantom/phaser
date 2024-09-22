@@ -31,15 +31,15 @@
  "tileheight":64,
  "tilesets":[
         {
-         "columns":13,
+         "columns":14,
          "firstgid":1,
          "image":"..\/tilesets\/earth_terrain.png",
          "imageheight":64,
-         "imagewidth":832,
+         "imagewidth":896,
          "margin":0,
          "name":"earth_terrain",
          "spacing":0,
-         "tilecount":13,
+         "tilecount":14,
          "tileheight":64,
          "tiles":[
                 {
@@ -224,11 +224,25 @@
                          "type":"bool",
                          "value":false
                         }]
+                }, 
+                {
+                 "id":13,
+                 "properties":[
+                        {
+                         "name":"movement_points",
+                         "type":"float",
+                         "value":0.5
+                        }, 
+                        {
+                         "name":"water",
+                         "type":"bool",
+                         "value":false
+                        }]
                 }],
          "tilewidth":64
         }, 
         {
-         "firstgid":14,
+         "firstgid":15,
          "source":":\/automap-tiles.tsx"
         }],
  "tilewidth":64,
