@@ -9,6 +9,6 @@ export class City extends Locality implements Profitable {
     }
 
     income(): number {
-        return 25;
+        return 15;
     }
 }

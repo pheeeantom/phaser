@@ -70,13 +70,13 @@ export class Planet {
         let moscow = new Town();
         moscow.place(7, 3, 10000, planetScene, Country.getCountryByName('russia')!.genCityNames.next().value, Country.getCountryByName('russia')!);
         Country.getCountryByName('russia')!.addTile(this.tiles.getTileByXY(7, 3), planetScene);
+        Country.getCountryByName('russia')!.addTile(this.tiles.getTileByXY(5, 3), planetScene);
+        Country.getCountryByName('russia')!.addTile(this.tiles.getTileByXY(6, 3), planetScene);
         console.log(Country.getCountryByName('russia'));
         //moscow.occupy(Country.getCountryByName('russia')!, planetScene);
-        let beijing = new Village();
+        let beijing = new Town();
         beijing.place(7, 8, 1000, planetScene, Country.getCountryByName('china')!.genCityNames.next().value, Country.getCountryByName('china')!);
         Country.getCountryByName('china')!.addTile(this.tiles.getTileByXY(7, 8), planetScene);
-        Country.getCountryByName('china')!.addTile(this.tiles.getTileByXY(5, 3), planetScene);
-        Country.getCountryByName('china')!.addTile(this.tiles.getTileByXY(6, 3), planetScene);
         //beijing.occupy(Country.getCountryByName('china')!, planetScene);
         console.log(Country.allTiles());
         console.log(Country.getCountryByName('russia')!);
