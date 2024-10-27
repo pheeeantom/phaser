@@ -46,6 +46,9 @@ export class PlanetScene extends Scene{
   toSceneCoords(x: number, y: number) {
     let {x: tmpX, y: tmpY} = this.cameras.main.getWorldPoint(x, y);
     let phaserTileStart = this.terrainPlanetLayer.getTileAtWorldXY(tmpX, tmpY);
+    if (!phaserTileStart) {
+      throw new Error("Coords are out of map!");
+    }
     let newX = phaserTileStart.x;
     let newY = phaserTileStart.y;
     return {x: newX, y: newY};
@@ -115,148 +118,156 @@ export class PlanetScene extends Scene{
       if (Game.getInstance().economic.activated === "soldier" || Game.getInstance().economic.activated === "artillery" ||
         Game.getInstance().economic.activated === "tank" || Game.getInstance().economic.activated === "aircraft" ||
         Game.getInstance().economic.activated === "destroyer" || Game.getInstance().economic.activated === "battleship") {
-        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
-        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
-        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
-        let unit;
-        if (Game.getInstance().economic.activated === "soldier") {
-          unit = Soldier;
-        }
-        else if (Game.getInstance().economic.activated === "artillery") {
-          unit = Artillery;
-        }
-        else if (Game.getInstance().economic.activated === "tank") {
-          unit = Tank;
-        }
-        else if (Game.getInstance().economic.activated === "aircraft") {
-          unit = AirCraft;
-        }
-        else if (Game.getInstance().economic.activated === "destroyer") {
-          unit = Destroyer;
-        }
-        else if (Game.getInstance().economic.activated === "battleship") {
-          unit = BattleShip;
-        }
-        if (!(new unit().landWater & WATER) && tileOn.water) {
-          Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated +
-            " on water while it is not marine...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        if (!(new unit().landWater & LAND) && !tileOn.water) {
-          Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated +
-            " on land while it is not landy...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        if (curArmy) {
-          if (curArmy.getUnitsType() !== Game.getInstance().economic.activated) {
+        try {
+          let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+          let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
+          let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+          let unit;
+          if (Game.getInstance().economic.activated === "soldier") {
+            unit = Soldier;
+          }
+          else if (Game.getInstance().economic.activated === "artillery") {
+            unit = Artillery;
+          }
+          else if (Game.getInstance().economic.activated === "tank") {
+            unit = Tank;
+          }
+          else if (Game.getInstance().economic.activated === "aircraft") {
+            unit = AirCraft;
+          }
+          else if (Game.getInstance().economic.activated === "destroyer") {
+            unit = Destroyer;
+          }
+          else if (Game.getInstance().economic.activated === "battleship") {
+            unit = BattleShip;
+          }
+          if (!(new unit().landWater & WATER) && tileOn.water) {
             Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated +
-              " on not a " + Game.getInstance().economic.activated + "...");
+              " on water while it is not marine...");
             Game.getInstance().economic.activated = "none";
             return;
           }
-          else if (curArmy.getUnitsNumber() + 1 > curArmy.getUnitsMaxNum()) {
-            Game.getInstance().economic.mainPanel.setMessage("You can't have more than " + curArmy.getUnitsMaxNum() + " " + Game.getInstance().economic.activated + " on one tile...");
+          if (!(new unit().landWater & LAND) && !tileOn.water) {
+            Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated +
+              " on land while it is not landy...");
             Game.getInstance().economic.activated = "none";
             return;
           }
-          else if (Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
-            Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated + " on an enemy...");
+          if (curArmy) {
+            if (curArmy.getUnitsType() !== Game.getInstance().economic.activated) {
+              Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated +
+                " on not a " + Game.getInstance().economic.activated + "...");
+              Game.getInstance().economic.activated = "none";
+              return;
+            }
+            else if (curArmy.getUnitsNumber() + 1 > curArmy.getUnitsMaxNum()) {
+              Game.getInstance().economic.mainPanel.setMessage("You can't have more than " + curArmy.getUnitsMaxNum() + " " + Game.getInstance().economic.activated + " on one tile...");
+              Game.getInstance().economic.activated = "none";
+              return;
+            }
+            else if (Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
+              Game.getInstance().economic.mainPanel.setMessage("You can't place a " + Game.getInstance().economic.activated + " on an enemy...");
+              Game.getInstance().economic.activated = "none";
+              return;
+            }
+          }
+          if (Game.getInstance().turn.getCurrentCountry().money < unit.cost) {
+            Game.getInstance().economic.mainPanel.setMessage("Not enough money (" + Game.getInstance().economic.activated + " price is " + unit.cost + "$)...");
             Game.getInstance().economic.activated = "none";
             return;
           }
-        }
-        if (Game.getInstance().turn.getCurrentCountry().money < unit.cost) {
-          Game.getInstance().economic.mainPanel.setMessage("Not enough money (" + Game.getInstance().economic.activated + " price is " + unit.cost + "$)...");
+          if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
+            Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on your territory...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          tileOn.spawnUnit(this, Game.getInstance().turn.getCurrentCountry(), unit);
+          Game.getInstance().turn.getCurrentCountry().money -= unit.cost;
+          Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+          Game.getInstance().economic.mainPanel.setMessage("OK");
           Game.getInstance().economic.activated = "none";
           return;
+        } catch (e) {
+          console.log((e as Error).message);
         }
-        if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
-          Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on your territory...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        tileOn.spawnUnit(this, Game.getInstance().turn.getCurrentCountry(), unit);
-        Game.getInstance().turn.getCurrentCountry().money -= unit.cost;
-        Game.getInstance().economic.mainPanel.setInfo(this.playScene);
-        Game.getInstance().economic.mainPanel.setMessage("OK");
-        Game.getInstance().economic.activated = "none";
-        return;
       }
       if (Game.getInstance().economic.activated === "village" || Game.getInstance().economic.activated === "farm" ||
         Game.getInstance().economic.activated === "mine" || Game.getInstance().economic.activated === "upgrade" ||
         Game.getInstance().economic.activated === "factory") {
-        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
-        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
-        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
-        let building;
-        if (Game.getInstance().economic.activated === "village") {
-          building = Village;
-        }
-        else if (Game.getInstance().economic.activated === "farm") {
-          building = Farm;
-        }
-        else if (Game.getInstance().economic.activated === "mine") {
-          building = Mine;
-        }
-        else if (Game.getInstance().economic.activated === "factory") {
-          if (!Game.getInstance().turn.getCurrentCountry().canPlaceFactory()) {
-            Game.getInstance().economic.mainPanel.setMessage("There should be at least 3 mines per 1 factory...");
+        try {
+          let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+          let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
+          let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+          let building;
+          if (Game.getInstance().economic.activated === "village") {
+            building = Village;
+          }
+          else if (Game.getInstance().economic.activated === "farm") {
+            building = Farm;
+          }
+          else if (Game.getInstance().economic.activated === "mine") {
+            building = Mine;
+          }
+          else if (Game.getInstance().economic.activated === "factory") {
+            if (!Game.getInstance().turn.getCurrentCountry().canPlaceFactory()) {
+              Game.getInstance().economic.mainPanel.setMessage("There should be at least 3 mines per 1 factory...");
+              Game.getInstance().economic.activated = "none";
+              return;
+            }
+            building = Factory;
+          }
+          else if (Game.getInstance().economic.activated === "upgrade") {
+            if (tileOn.improvement instanceof Village) {
+              building = Town;
+            }
+            else if (tileOn.improvement instanceof Town) {
+              building = City;
+            }
+            else {
+              Game.getInstance().economic.mainPanel.setMessage("You can upgrade only a village or a town...");
+              Game.getInstance().economic.activated = "none";
+              return;
+            }
+          }
+          if (Game.getInstance().turn.getCurrentCountry().money < building.cost) {
+            Game.getInstance().economic.mainPanel.setMessage("Not enough money (" + Game.getInstance().economic.activated + " price is " + building.cost + "$)...");
             Game.getInstance().economic.activated = "none";
             return;
           }
-          building = Factory;
-        }
-        else if (Game.getInstance().economic.activated === "upgrade") {
-          if (tileOn.improvement instanceof Village) {
-            building = Town;
+          if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
+            Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on your territory...");
+            Game.getInstance().economic.activated = "none";
+            return;
           }
-          else if (tileOn.improvement instanceof Town) {
-            building = City;
+          if (tileOn.improvement && Game.getInstance().economic.activated !== "upgrade") {
+            Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only where no other buildings...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          if (!building.acceptableTerrains.includes(tileOn.terrainTypeId)) {
+            Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on " + Tiles.getNamesOfTerrains(building.acceptableTerrains).join(" or ") + "...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          let name;
+          if (Game.getInstance().economic.activated === "village") {
+            name = Game.getInstance().turn.getCurrentCountry().genCityNames.next().value;
+          }
+          else if (Game.getInstance().economic.activated === "upgrade") {
+            name = tileOn.improvement!.name;
           }
           else {
-            Game.getInstance().economic.mainPanel.setMessage("You can upgrade only a village or a town...");
-            Game.getInstance().economic.activated = "none";
-            return;
+            name = Game.getInstance().economic.activated;
           }
-        }
-        if (Game.getInstance().turn.getCurrentCountry().money < building.cost) {
-          Game.getInstance().economic.mainPanel.setMessage("Not enough money (" + Game.getInstance().economic.activated + " price is " + building.cost + "$)...");
+          new building().place(newX, newY, 1000, this, name, Game.getInstance().turn.getCurrentCountry());
+          Game.getInstance().turn.getCurrentCountry().money -= building.cost;
+          Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+          Game.getInstance().economic.mainPanel.setMessage("OK");
           Game.getInstance().economic.activated = "none";
           return;
+        } catch (e) {
+          console.log((e as Error).message);
         }
-        if (Country.getCountryByTile(tileOn) !== Game.getInstance().turn.getCurrentCountry()) {
-          Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on your territory...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        if (tileOn.improvement && Game.getInstance().economic.activated !== "upgrade") {
-          Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only where no other buildings...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        if (!building.acceptableTerrains.includes(tileOn.terrainTypeId)) {
-          Game.getInstance().economic.mainPanel.setMessage("You can place a " + Game.getInstance().economic.activated + " only on " + Tiles.getNamesOfTerrains(building.acceptableTerrains).join(" or ") + "...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        let name;
-        if (Game.getInstance().economic.activated === "village") {
-          name = Game.getInstance().turn.getCurrentCountry().genCityNames.next().value;
-        }
-        else if (Game.getInstance().economic.activated === "upgrade") {
-          name = tileOn.improvement!.name;
-        }
-        else {
-          name = Game.getInstance().economic.activated;
-        }
-        new building().place(newX, newY, 1000, this, name, Game.getInstance().turn.getCurrentCountry());
-        Game.getInstance().turn.getCurrentCountry().money -= building.cost;
-        Game.getInstance().economic.mainPanel.setInfo(this.playScene);
-        Game.getInstance().economic.mainPanel.setMessage("OK");
-        Game.getInstance().economic.activated = "none";
-        return;
       }
       /*if (Game.getInstance().economic.activated === "upgrade") {
         let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
@@ -298,152 +309,165 @@ export class PlanetScene extends Scene{
         return;
       }*/
       if (Game.getInstance().economic.activated === "ter") {
-        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
-        let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
-        let tileOn = this.planet.tiles.getTileByXY(newX, newY);
-        if (tileOn.water && !tileOn.neighbors.find(tile => tile.improvement instanceof Locality)) {
-          Game.getInstance().economic.mainPanel.setMessage("You can't buy a water territory not near to locality...");
+        try {
+          let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+          let curArmy = this.planet.tiles.getArmyByXY(newX, newY);
+          let tileOn = this.planet.tiles.getTileByXY(newX, newY);
+          if (tileOn.water && !tileOn.neighbors.find(tile => tile.improvement instanceof Locality)) {
+            Game.getInstance().economic.mainPanel.setMessage("You can't buy a water territory not near to locality...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          if (curArmy && Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
+            Game.getInstance().economic.mainPanel.setMessage("You can't buy a territory where is an enemy...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          if (Game.getInstance().turn.getCurrentCountry().money < Game.getInstance().turn.getCurrentCountry().currentTerritoryCost) {
+            Game.getInstance().economic.mainPanel.setMessage("Not enough money (current territory price is " + Game.getInstance().turn.getCurrentCountry().currentTerritoryCost + "$)...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          if (!tileOn.neighbors.find(neighbor => Country.getCountryByTile(neighbor) === Game.getInstance().turn.getCurrentCountry())) {
+            Game.getInstance().economic.mainPanel.setMessage("You can only buy a territory near to your current territories...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          if (Country.getCountryByTile(tileOn)) {
+            Game.getInstance().economic.mainPanel.setMessage("You can only buy a neutral territory...");
+            Game.getInstance().economic.activated = "none";
+            return;
+          }
+          Game.getInstance().turn.getCurrentCountry().addTile(tileOn, this);
+          Game.getInstance().turn.getCurrentCountry().money -= Game.getInstance().turn.getCurrentCountry().currentTerritoryCost;
+          Game.getInstance().turn.getCurrentCountry().currentTerritoryCost += 3;
+          Game.getInstance().economic.mainPanel.setInfo(this.playScene);
+          Game.getInstance().economic.mainPanel.setMessage("OK");
           Game.getInstance().economic.activated = "none";
           return;
+        } catch (e) {
+          console.log((e as Error).message);
         }
-        if (curArmy && Country.getCountryByArmy(curArmy) !== Game.getInstance().turn.getCurrentCountry()) {
-          Game.getInstance().economic.mainPanel.setMessage("You can't buy a territory where is an enemy...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        if (Game.getInstance().turn.getCurrentCountry().money < Game.getInstance().turn.getCurrentCountry().currentTerritoryCost) {
-          Game.getInstance().economic.mainPanel.setMessage("Not enough money (current territory price is " + Game.getInstance().turn.getCurrentCountry().currentTerritoryCost + "$)...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        if (!tileOn.neighbors.find(neighbor => Country.getCountryByTile(neighbor) === Game.getInstance().turn.getCurrentCountry())) {
-          Game.getInstance().economic.mainPanel.setMessage("You can only buy a territory near to your current territories...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        if (Country.getCountryByTile(tileOn)) {
-          Game.getInstance().economic.mainPanel.setMessage("You can only buy a neutral territory...");
-          Game.getInstance().economic.activated = "none";
-          return;
-        }
-        Game.getInstance().turn.getCurrentCountry().addTile(tileOn, this);
-        Game.getInstance().turn.getCurrentCountry().money -= Game.getInstance().turn.getCurrentCountry().currentTerritoryCost;
-        Game.getInstance().turn.getCurrentCountry().currentTerritoryCost += 3;
-        Game.getInstance().economic.mainPanel.setInfo(this.playScene);
-        Game.getInstance().economic.mainPanel.setMessage("OK");
-        Game.getInstance().economic.activated = "none";
-        return;
       }
       if (this.planet.curArmy) {
-        if (this.planet.activated !== "none") {
-          //this.planet.curArmy.clearRange();
-          let {x: newX1, y: newY1} = this.toSceneCoords(pointer.x, pointer.y);
-          //let newX1 = this.camera.camera
-          if (!this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack").includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
-            (this.planet.curArmy.getTile() === this.planet.tiles.getTileByXY(newX1, newY1))) {
-            //this.planet.cancelMovingArmy(movingArmy, prevCurArmy, this);
-            this.planet.curArmy.clearRange();
-            this.planet.activated = "none";
-            this.planet.curArmy = null;
-            return;
-          }
-          console.log(this.planet.curArmy);
-          //let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
-          //let improvement = this.planet.tiles.getImprovementByXY(newX1, newY1);
-
-          if (this.planet.activated === "shoot") {
-            let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
-            this.planet.curArmy.clearRange();
-            if (!toArmy) {
-              Game.getInstance().economic.mainPanel.setMessage("No enemy on the tile");
+        try {
+          if (this.planet.activated !== "none") {
+            //this.planet.curArmy.clearRange();
+            let {x: newX1, y: newY1} = this.toSceneCoords(pointer.x, pointer.y);
+            //let newX1 = this.camera.camera
+            if (!this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack").includes(this.planet.tiles.getTileByXY(newX1, newY1)) ||
+              (this.planet.curArmy.getTile() === this.planet.tiles.getTileByXY(newX1, newY1))) {
+              //this.planet.cancelMovingArmy(movingArmy, prevCurArmy, this);
+              this.planet.curArmy.clearRange();
               this.planet.activated = "none";
               this.planet.curArmy = null;
               return;
             }
-            this.planet.curArmy.shoot(toArmy);
-            this.planet.activated = "none";
-            this.planet.curArmy = null;
-            return;
-          }
+            console.log(this.planet.curArmy);
+            //let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
+            //let improvement = this.planet.tiles.getImprovementByXY(newX1, newY1);
 
-          if (this.planet.activated === "air attack") {
-            let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
-            this.planet.curArmy.clearRange();
-            if (!toArmy) {
-              Game.getInstance().economic.mainPanel.setMessage("No enemy on the tile");
+            if (this.planet.activated === "shoot") {
+              let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
+              this.planet.curArmy.clearRange();
+              if (!toArmy) {
+                Game.getInstance().economic.mainPanel.setMessage("No enemy on the tile");
+                this.planet.activated = "none";
+                this.planet.curArmy = null;
+                return;
+              }
+              this.planet.curArmy.shoot(toArmy);
               this.planet.activated = "none";
               this.planet.curArmy = null;
               return;
             }
-            this.planet.curArmy.airAttack(toArmy);
+
+            if (this.planet.activated === "air attack") {
+              let toArmy = this.planet.tiles.getArmyByXY(newX1, newY1);
+              this.planet.curArmy.clearRange();
+              if (!toArmy) {
+                Game.getInstance().economic.mainPanel.setMessage("No enemy on the tile");
+                this.planet.activated = "none";
+                this.planet.curArmy = null;
+                return;
+              }
+              this.planet.curArmy.airAttack(toArmy);
+              this.planet.activated = "none";
+              this.planet.curArmy = null;
+              return;
+            }
+
+            if (this.planet.activated === "move one") {
+              //movingArmy = this.planet.curArmy.pickOne(this);
+              //this.planet.curArmy = movingArmy;
+              this.planet.curArmy = this.planet.curArmy.pickOne(this);
+            }
+            //else if (this.planet.activated === "move all") {
+            //  movingArmy = null;
+            //}
+            this.planet.curArmy.move(pointer.x, pointer.y,
+              this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack"), this, maxMP);
             this.planet.activated = "none";
             this.planet.curArmy = null;
+            console.log(Country.allArmies());
             return;
           }
 
-          if (this.planet.activated === "move one") {
-            //movingArmy = this.planet.curArmy.pickOne(this);
-            //this.planet.curArmy = movingArmy;
-            this.planet.curArmy = this.planet.curArmy.pickOne(this);
+          
+
+          this.planet.activated = this.planet.curArmy.menu.click(pointer.x, pointer.y, this.camera.camera);
+          if (this.planet.activated === "move all") {
+            maxMP = this.planet.curArmy.getCurrentAllMovementPoints();
           }
-          //else if (this.planet.activated === "move all") {
-          //  movingArmy = null;
-          //}
-          this.planet.curArmy.move(pointer.x, pointer.y,
-            this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack"), this, maxMP);
-          this.planet.activated = "none";
-          this.planet.curArmy = null;
-          console.log(Country.allArmies());
-          return;
-        }
+          else if (this.planet.activated === "move one") {
+            maxMP = this.planet.curArmy.getCurrentOneMovementPoints();
+          }
+          else if (this.planet.activated === "shoot") {
+            maxMP = this.planet.curArmy.canShoot() ? this.planet.curArmy.getCurrentShootMovementPoints() : 0;
+            Game.getInstance().economic.mainPanel.setMessage("Choose an enemy to shoot");
+          }
+          else if (this.planet.activated === "air attack") {
+            maxMP = this.planet.curArmy.getCurrentAllMovementPoints();
+          }
+          else {
+            maxMP = 0;
+          }
+          console.log("maxMP: " + maxMP);
+          //prevCurArmy = this.planet.curArmy;
+          /*if (this.planet.activated === "move one") {
+            movingArmy = this.planet.curArmy.pickOne(this);
+            this.planet.curArmy = movingArmy;
+          }
+          else if (this.planet.activated === "move all") {
+            movingArmy = null;
+          }*/
+          /*if (movingArmy) {
+            let country = Game.getInstance().turn.getCurrentCountry();
+            movingArmy = country.addArmy(movingArmy!, this) as LandArmy;
+            movingArmy.transferOneFromArmy(this.planet.curArmy, this, country.color);
+            this.planet.curArmy.clearRange();
+            this.planet.curArmy.menu.clearMenu();
+            this.planet.curArmy = movingArmy;
+          }*/
 
-        
-
-        this.planet.activated = this.planet.curArmy.menu.click(pointer.x, pointer.y, this.camera.camera);
-        if (this.planet.activated === "move all") {
-          maxMP = this.planet.curArmy.getCurrentAllMovementPoints();
-        }
-        else if (this.planet.activated === "move one") {
-          maxMP = this.planet.curArmy.getCurrentOneMovementPoints();
-        }
-        else if (this.planet.activated === "shoot") {
-          maxMP = this.planet.curArmy.canShoot() ? this.planet.curArmy.getCurrentShootMovementPoints() : 0;
-          Game.getInstance().economic.mainPanel.setMessage("Choose an enemy to shoot");
-        }
-        else if (this.planet.activated === "air attack") {
-          maxMP = this.planet.curArmy.getCurrentAllMovementPoints();
-        }
-        else {
-          maxMP = 0;
-        }
-        console.log("maxMP: " + maxMP);
-        //prevCurArmy = this.planet.curArmy;
-        /*if (this.planet.activated === "move one") {
-          movingArmy = this.planet.curArmy.pickOne(this);
-          this.planet.curArmy = movingArmy;
-        }
-        else if (this.planet.activated === "move all") {
-          movingArmy = null;
-        }*/
-        /*if (movingArmy) {
-          let country = Game.getInstance().turn.getCurrentCountry();
-          movingArmy = country.addArmy(movingArmy!, this) as LandArmy;
-          movingArmy.transferOneFromArmy(this.planet.curArmy, this, country.color);
-          this.planet.curArmy.clearRange();
-          this.planet.curArmy.menu.clearMenu();
-          this.planet.curArmy = movingArmy;
-        }*/
-
-        if (this.planet.activated !== "none") this.planet.curArmy.renderMovementRange(this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack"));
-        console.log(this.planet.activated);
-        if (this.planet.activated === "none") {
-          //this.planet.curArmy.clearRange();
-          this.planet.curArmy = null;
+          if (this.planet.activated !== "none") this.planet.curArmy.renderMovementRange(this.planet.tiles.getMovementRange(this.planet.curArmy, maxMP, this.planet.activated === "shoot" || this.planet.activated === "air attack"));
+          console.log(this.planet.activated);
+          if (this.planet.activated === "none") {
+            //this.planet.curArmy.clearRange();
+            this.planet.curArmy = null;
+          }
+        } catch (e) {
+          console.log((e as Error).message);
         }
       }
       else if (!this.planet.curArmy) {
-        let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
-        this.planet.chooseCurUnit(newX, newY, this);
+        try {
+          let {x: newX, y: newY} = this.toSceneCoords(pointer.x, pointer.y);
+          this.planet.chooseCurUnit(newX, newY, this);
+        }
+        catch (e) {
+          console.log((e as Error).message);
+        }
       }
     });
   }

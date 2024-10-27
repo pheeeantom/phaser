@@ -181,37 +181,38 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     }
 
     move(x: number, y: number, range: Tile[], planetScene: PlanetScene, maxMP: number) {
-        let {x: newX, y: newY} = (this._sprite.scene as PlanetScene).toSceneCoords(x, y);
-        let toArmy = planetScene.planet.tiles.getArmyByXY(newX, newY);
+        try {
+            let {x: newX, y: newY} = (this._sprite.scene as PlanetScene).toSceneCoords(x, y);
+            let toArmy = planetScene.planet.tiles.getArmyByXY(newX, newY);
 
-        if (toArmy && Country.getCountryByArmy(toArmy) === Country.getCountryByArmy(this) &&
-            this.getUnitsNumber() + (toArmy as LandArmy).getUnitsNumber() > this.getUnitsMaxNum()) {
-            this.clearRange();
-            return;
-        }
-
-        //let improvement = planetScene.planet.tiles.getImprovementByXY(newX, newY);
-        console.log(newX, newY);
-        if (!range.includes((this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY))) {
-            this.clearRange();
-            return;
-        }
-        let shortestPath = (this._sprite.scene as PlanetScene).planet.tiles.shortestPath(
-            (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(this._x, this._y),
-            (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY),
-            maxMP
-        );
-        let generateSequence = function*() {
-            for (let i = 1; i < shortestPath.length; i++) {
-                yield shortestPath[i];
+            if (toArmy && Country.getCountryByArmy(toArmy) === Country.getCountryByArmy(this) &&
+                this.getUnitsNumber() + toArmy.getUnitsNumber() > this.getUnitsMaxNum()) {
+                this.clearRange();
+                return;
             }
-            return null;
-        }
-        let generator = generateSequence();
-        let next = generator;
-        let totalCost = 0;
-        //console.log(shortestPath);
-        let timerId = setInterval((gen) => {
+
+            //let improvement = planetScene.planet.tiles.getImprovementByXY(newX, newY);
+            console.log(newX, newY);
+            if (!range.includes((this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY))) {
+                this.clearRange();
+                return;
+            }
+            let shortestPath = (this._sprite.scene as PlanetScene).planet.tiles.shortestPath(
+                (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(this._x, this._y),
+                (this._sprite.scene as PlanetScene).planet.tiles.getTileByXY(newX, newY),
+                maxMP
+            );
+            let generateSequence = function*() {
+                for (let i = 1; i < shortestPath.length; i++) {
+                    yield shortestPath[i];
+                }
+                return null;
+            }
+            let generator = generateSequence();
+            let next = generator;
+            let totalCost = 0;
+            //console.log(shortestPath);
+            let timerId = setInterval((gen) => {
                 let tile: Tile | null = next.next().value;
                 //console.log(tile);
                 if (!tile) {
@@ -252,6 +253,9 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
                 }
             },
             250, next);
+        } catch (e) {
+            console.log((e as Error).message);
+        }
     }
 
     /*cancelMovingArmy(movingArmy: LandArmy | null, prevCurArmy: LandArmy, planetScene: PlanetScene): void {

@@ -263,6 +263,14 @@ export class Tiles {
     return this._grid[x][y];
   }
 
+  getGridCols() {
+    return this._cols;
+  }
+
+  getGridRows() {
+    return this._rows;
+  }
+
   static getNamesOfTerrains(terrainTypeIdArr: number[]): string[] {
     return terrainTypeIdArr.map((terrainTypeId) => {
       if (terrainTypeId === 1) {
