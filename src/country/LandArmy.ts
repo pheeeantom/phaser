@@ -15,6 +15,7 @@ import { isRangedAttacker, RangedAttacker } from "../interfaces/RangedAttacker";
 import { AirAttacker } from "../interfaces/AirAttacker";
 import { isShippable, Shippable } from "../interfaces/Marine";
 import _ from "lodash";
+import { CustomError } from "../errors/CustomError";
 
 export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
     protected _range: Phaser.GameObjects.Ellipse[];
@@ -254,7 +255,8 @@ export class LandArmy extends Army implements CreateablePlanet<LandArmy> {
             },
             250, next);
         } catch (e) {
-            console.log((e as Error).message);
+            if (e instanceof CustomError) console.log((e as Error).message);
+            else throw e;
         }
     }
 

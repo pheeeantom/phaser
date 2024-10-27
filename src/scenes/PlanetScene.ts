@@ -24,6 +24,7 @@ import { BattleShip } from "../unit/planet/martial/marine/BattleShip";
 import { Locality } from "../planet/improvement/Locality";
 import { LAND, WATER } from "../interfaces/Marine";
 import { Factory } from "../planet/improvement/Factory";
+import { CustomError } from "../errors/CustomError";
 
 export class PlanetScene extends Scene{
 
@@ -47,7 +48,7 @@ export class PlanetScene extends Scene{
     let {x: tmpX, y: tmpY} = this.cameras.main.getWorldPoint(x, y);
     let phaserTileStart = this.terrainPlanetLayer.getTileAtWorldXY(tmpX, tmpY);
     if (!phaserTileStart) {
-      throw new Error("Coords are out of map!");
+      throw new CustomError("Coords are out of map!");
     }
     let newX = phaserTileStart.x;
     let newY = phaserTileStart.y;
@@ -188,7 +189,8 @@ export class PlanetScene extends Scene{
           Game.getInstance().economic.activated = "none";
           return;
         } catch (e) {
-          console.log((e as Error).message);
+          if (e instanceof CustomError) console.log((e as Error).message);
+          else throw e;
         }
       }
       if (Game.getInstance().economic.activated === "village" || Game.getInstance().economic.activated === "farm" ||
@@ -266,7 +268,8 @@ export class PlanetScene extends Scene{
           Game.getInstance().economic.activated = "none";
           return;
         } catch (e) {
-          console.log((e as Error).message);
+          if (e instanceof CustomError) console.log((e as Error).message);
+          else throw e;
         }
       }
       /*if (Game.getInstance().economic.activated === "upgrade") {
@@ -346,7 +349,8 @@ export class PlanetScene extends Scene{
           Game.getInstance().economic.activated = "none";
           return;
         } catch (e) {
-          console.log((e as Error).message);
+          if (e instanceof CustomError) console.log((e as Error).message);
+          else throw e;
         }
       }
       if (this.planet.curArmy) {
@@ -457,7 +461,8 @@ export class PlanetScene extends Scene{
             this.planet.curArmy = null;
           }
         } catch (e) {
-          console.log((e as Error).message);
+          if (e instanceof CustomError) console.log((e as Error).message);
+          else throw e;
         }
       }
       else if (!this.planet.curArmy) {
